@@ -275,7 +275,8 @@ function generateDemo(userGoal, options = {}) {
     suffix: null,
     domainName: null,
     referenceDate: null,
-    appliedFactors: null
+    appliedFactors: null,
+    demoGuideDocUrl: null
   };
   
   try {
@@ -312,6 +313,19 @@ function generateDemo(userGoal, options = {}) {
     result.externalFiles = planResult.externalFiles || [];
     result.appliedFactors = planResult.appliedFactors || {};
 
+    let demoGuideDocUrl = '';
+    try {
+      const mdDoc = buildDemoGuideMarkdownFromPlan(planResult);
+      if (mdDoc && String(mdDoc).trim()) {
+        const docRes = createGoogleDocFromMarkdown(mdDoc, 'Demo Guide & Script — ' + dirName);
+        if (docRes && docRes.success && docRes.url) demoGuideDocUrl = docRes.url;
+        else if (docRes && docRes.error) console.error('[DemoGuideDoc]', docRes.error);
+      }
+    } catch (docErr) {
+      console.error('[DemoGuideDoc]', docErr.message);
+    }
+    result.demoGuideDocUrl = demoGuideDocUrl || null;
+
     result.setupScript = generateSetupScript({
       datasetId: datasetId,
       systemInstruction: planResult.systemInstruction,
@@ -322,7 +336,8 @@ function generateDemo(userGoal, options = {}) {
       tables: planResult.tables,
       userGoal: userGoal,
       useGoogleWorkspace: options.useGoogleWorkspace,
-      workspaceSeedData: planResult.workspaceSeedData || {}
+      workspaceSeedData: planResult.workspaceSeedData || {},
+      demoGuideDocUrl: demoGuideDocUrl
     });
     result.steps.push({ step: 4, status: 'completed', message: 'Generation complete' });
     
@@ -1361,6 +1376,15 @@ function generateSetupScript(params) {
     useGoogleWorkspace && workspaceSeedEmails.length > 0
       ? buildWorkspaceSeedEmailInjectionBlock(workspaceSeedEmails)
       : '';
+  const demoGuideDocUrlParam = params.demoGuideDocUrl || '';
+  const demoGuideEnvBlock = demoGuideDocUrlParam ? 'export DEMO_GUIDE_DOC_URL=' + JSON.stringify(demoGuideDocUrlParam) + '\n' : '';
+  const _demoGuideShellVarRef = '$' + '{DEMO_GUIDE_DOC_URL}';
+  const demoGuideUrlEchoSnippet =
+    '\n[ -n "' +
+    _demoGuideShellVarRef +
+    '" ] && echo "" && echo "📄 Your Demo Guide & Script: ' +
+    _demoGuideShellVarRef +
+    '" && echo ""\n';
   
   const escapedInstruction = systemInstruction
     .replace(/\\/g, '\\\\\\\\')
@@ -1631,6 +1655,7 @@ echo
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     exit 1
 fi
+${demoGuideEnvBlock}
 
 # --- 1.1 Authentication & Permissions Check ---
 echo "🔐 Checking authentication..."
@@ -3096,6 +3121,7 @@ if [ "$DEPLOY_CHOICE" = "3" ]; then
   echo "   • Your agent is now available in your Gemini Enterprise organization."
   echo "   • To CLEANUP:        bash setup-${dirName}.sh --cleanup"
   echo "========================================================="
+${demoGuideUrlEchoSnippet}
   exit 0
 fi
 
@@ -3131,6 +3157,7 @@ if [ "$DEPLOY_CHOICE" = "2" ]; then
   echo "   • The agent is now live at the URL above."
   echo "   • To CLEANUP:        bash setup-${dirName}.sh --cleanup"
   echo "========================================================="
+${demoGuideUrlEchoSnippet}
   exit 0
 fi
 
@@ -3186,7 +3213,7 @@ echo "   • To CLEANUP:        bash setup-${dirName}.sh --cleanup"
 echo ""
 echo "========================================================="
 echo ""
-
+${demoGuideUrlEchoSnippet}
 cd adk_agent
 ../.venv/bin/adk web --port \$PORT --allow_origins="*"
 `;
@@ -3362,6 +3389,120 @@ function updateSystemInstruction(setupScript, newInstruction) {
 
 function include(filename) {
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
+}
+
+/**
+ * Prefers narrator Markdown from planning; synthesizes Markdown from structured scenario prompts if absent.
+ */
+function buildDemoGuideMarkdownFromPlan(planResult) {
+  if (!planResult) return '';
+  const primary = String(planResult.demoGuideMarkdown || '').trim();
+  if (primary) return primary;
+
+  var prompts = planResult.demoGuide;
+  if (!Array.isArray(prompts) || prompts.length === 0) return '';
+
+  var lines = [];
+  for (var i = 0; i < prompts.length; i++) {
+    var step = prompts[i];
+    if (!step || typeof step !== 'object') continue;
+    lines.push('## ' + String(step.title || 'Demo scenario ' + (i + 1)));
+    lines.push('');
+    lines.push(String(step.prompt || ''));
+    lines.push('');
+  }
+  return lines.join('\n').trim();
+}
+
+/**
+ * Creates a Google Doc from basic Markdown (#/##/###, - bullets, **bold**) and shares view-anyone-with-link.
+ * @returns {{success:boolean, url?: string, docId?: string, error?: string}}
+ */
+function createGoogleDocFromMarkdown(markdownContent, docTitle) {
+  try {
+    var content = markdownContent === null || markdownContent === undefined ? '' : String(markdownContent);
+    var titleBase = docTitle ? String(docTitle).trim() : 'Demo Guide & Script';
+    if (titleBase.length > 150) titleBase = titleBase.substring(0, 150);
+
+    function applyBoldToParagraph_(element, plainTextLine) {
+      var plain = plainTextLine === null || plainTextLine === undefined ? '' : String(plainTextLine);
+      var parts = plain.split('**');
+      if (parts.length <= 1) {
+        element.setText(plain);
+        return;
+      }
+
+      var newText = '';
+      var boldRanges = [];
+      var j;
+      for (j = 0; j < parts.length; j++) {
+        if (j % 2 === 1) {
+          var start = newText.length;
+          newText += parts[j];
+          boldRanges.push({ start: start, end: newText.length - 1 });
+        } else {
+          newText += parts[j];
+        }
+      }
+      element.setText(newText);
+      var textElement = element.editAsText();
+      for (var b = 0; b < boldRanges.length; b++) {
+        var r = boldRanges[b];
+        textElement.setBold(r.start, r.end, true);
+      }
+    }
+
+    var doc = DocumentApp.create(titleBase);
+    var body = doc.getBody();
+
+    var lines = content.split(/\r?\n/);
+    for (var li = 0; li < lines.length; li++) {
+      var trimmed = lines[li].trim();
+      if (!trimmed) {
+        body.appendParagraph('');
+        continue;
+      }
+
+      var hMatch = trimmed.match(/^(#{1,3})\s+(.+)$/);
+      if (hMatch) {
+        var lvl = hMatch[1].length;
+        var htext = hMatch[2];
+        var pHeading = DocumentApp.ParagraphHeading.NORMAL;
+        if (lvl === 1) pHeading = DocumentApp.ParagraphHeading.HEADING1;
+        else if (lvl === 2) pHeading = DocumentApp.ParagraphHeading.HEADING2;
+        else pHeading = DocumentApp.ParagraphHeading.HEADING3;
+        var hp = body.appendParagraph('');
+        hp.setHeading(pHeading);
+        applyBoldToParagraph_(hp, htext);
+        continue;
+      }
+
+      var bulletDash = trimmed.match(/^[-*]\s+(.+)$/);
+      if (bulletDash) {
+        var btext = bulletDash[1];
+        var lp = body.appendListItem(btext);
+        lp.setGlyphType(DocumentApp.GlyphType.BULLET);
+        applyBoldToParagraph_(lp, btext);
+        continue;
+      }
+
+      var np = body.appendParagraph('');
+      np.setHeading(DocumentApp.ParagraphHeading.NORMAL);
+      applyBoldToParagraph_(np, trimmed);
+    }
+
+    doc.saveAndClose();
+
+    var docId = doc.getId();
+    var file = DriveApp.getFileById(docId);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+    var url = file.getUrl();
+    return { success: true, url: url, docId: docId };
+  } catch (e) {
+    console.error('Demo guide Doc failed:', e.message);
+    return { success: false, error: e.message };
+  }
 }
 
 /**
