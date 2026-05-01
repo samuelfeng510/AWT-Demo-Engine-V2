@@ -321,7 +321,8 @@ function generateDemo(userGoal, options = {}) {
       dirName: dirName,
       tables: planResult.tables,
       userGoal: userGoal,
-      useGoogleWorkspace: options.useGoogleWorkspace
+      useGoogleWorkspace: options.useGoogleWorkspace,
+      workspaceSeedData: planResult.workspaceSeedData || {}
     });
     result.steps.push({ step: 4, status: 'completed', message: 'Generation complete' });
     
@@ -1207,8 +1208,159 @@ Return ONLY the name, nothing else.`;
   }
 }
 
+/**
+ * Collects email-shaped entries from LLM workspaceSeedData for deployment-time Gmail insert.
+ */
+function normalizeWorkspaceSeedEmails(workspaceSeedData) {
+  if (!workspaceSeedData || typeof workspaceSeedData !== 'object') return [];
+  const out = [];
+  const take = (arr) => {
+    if (!Array.isArray(arr)) return;
+    for (let i = 0; i < arr.length; i++) {
+      const e = arr[i];
+      if (e && typeof e === 'object') out.push(e);
+    }
+  };
+  take(workspaceSeedData.emailsToInject);
+  take(workspaceSeedData.sampleEmails);
+  return out.filter(e => {
+    const subj = String(e.subject || '').trim();
+    const body = String(
+      e.bodyPlain || e.body || e.bodyMarkdown || e.body_markdown || ''
+    ).trim();
+    return subj.length > 0 || body.length > 0;
+  });
+}
+
+/**
+ * Bash + embedded Python: insert seed messages via users.messages.insert using the same
+ * Desktop OAuth user credentials stored in Secret Manager as the agent.
+ */
+function buildWorkspaceSeedEmailInjectionBlock(emailsForInsert) {
+  if (!emailsForInsert || emailsForInsert.length === 0) return '';
+  const jsonBody = JSON.stringify(emailsForInsert);
+  const pySnippet = `# -*- coding: utf-8 -*-
+import json
+import base64
+from email.mime.text import MIMEText
+from pathlib import Path
+from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+
+SCOPES = [
+    "https://www.googleapis.com/auth/gmail.insert",
+    "https://www.googleapis.com/auth/gmail.send",
+]
+
+def main():
+    path = Path(".workspace_seed_emails.json")
+    raw = path.read_text(encoding="utf-8")
+    msgs = json.loads(raw)
+    if not isinstance(msgs, list):
+        print("⚠️  workspace_seed_emails.json is not a list; skipping.")
+        return
+    cred_path = Path(".workspace_gmail_creds_seed.json")
+    if not cred_path.is_file():
+        print("⚠️  Missing Gmail OAuth user file — skipping inserts.")
+        return
+    creds = Credentials.from_authorized_user_file(str(cred_path), scopes=SCOPES)
+    if not creds.refresh_token:
+        print("⚠️  Credentials file has no refresh_token — skipping.")
+        return
+    creds.refresh(Request())
+    service = build("gmail", "v1", credentials=creds, cache_discovery=False)
+    try:
+        me = service.users().getProfile(userId="me").execute().get("emailAddress", "") or ""
+    except HttpError as e:
+        print("⚠️  Could not resolve mailbox profile:", e)
+        me = ""
+
+    inserted = 0
+    for i, item in enumerate(msgs):
+        subj = (item.get("subject") or "").strip() or "(Demo seed email)"
+        body = (
+            item.get("bodyPlain")
+            or item.get("body")
+            or item.get("bodyMarkdown")
+            or item.get("body_markdown")
+            or ""
+        )
+        if isinstance(body, (dict, list)):
+            body = json.dumps(body, ensure_ascii=False, indent=2)
+        elif not isinstance(body, str):
+            body = str(body)
+        frm = (item.get("from") or item.get("fromAddress") or "demo.seed@invalid").strip()
+        to = (item.get("to") or item.get("toAddress") or me or "").strip()
+        if not to:
+            print("⚠️  Skipping seed", i + 1, "(no recipient and could not infer mailbox)")
+            continue
+        mime = MIMEText(body, "plain", "utf-8")
+        mime["Subject"] = subj
+        mime["From"] = frm
+        mime["To"] = to
+        raw_b64 = base64.urlsafe_b64encode(mime.as_bytes()).decode("utf-8")
+        try:
+            service.users().messages().insert(
+                userId="me",
+                body={"raw": raw_b64, "labelIds": ["INBOX", "UNREAD"]},
+            ).execute()
+            inserted += 1
+            print("✅ Inserted seed email %d: %s..." % (inserted, subj[:60]))
+        except HttpError as e:
+            print("⚠️  Gmail insert failed for seed %d (%s…): %s" % (i + 1, subj[:40], e))
+
+    print("✅ Finished workspace email seed injection (%d/%d inserted)." % (inserted, len(msgs)))
+
+
+if __name__ == "__main__":
+    main()
+`;
+
+  return `
+# ── Workspace demo: inject LLM-authored seed emails into Gmail (authenticated inbox) ──
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "📬 Workspace email seeds"
+echo "   ${emailsForInsert.length} synthetic message(s) from demo generator (workspaceSeedData)."
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+cat <<'__WORKSPACE_EMAIL_SEEDS_JSON__' > .workspace_seed_emails.json
+${jsonBody}
+__WORKSPACE_EMAIL_SEEDS_JSON__
+if [ -z "\${GMAIL_SECRET_ID}" ]; then
+  echo "⚠️  Gmail was not configured (no GMAIL_SECRET_ID). Skipping seed email injection."
+  echo "    Configure Gmail when prompted during setup, or run: bash \$0 --setup-gmail"
+  rm -f .workspace_seed_emails.json
+else
+  echo "📬 Seed emails are being injected into your inbox..."
+  echo "    (Gmail API users.messages.insert — same OAuth credential as Workspace tools)"
+  if gcloud secrets versions access latest --secret="\${GMAIL_SECRET_ID}" --project="\${PROJECT_ID}" > .workspace_gmail_creds_seed.json 2>/dev/null; then
+    if uv run python <<'PY_GMAIL_SEED_EOF'
+${pySnippet}
+PY_GMAIL_SEED_EOF
+    then
+      rm -f .workspace_seed_emails.json .workspace_gmail_creds_seed.json
+      echo "✅ Gmail inbox seed injection finished."
+    else
+      echo "⚠️  Seed email injection script reported an error (see above)."
+      rm -f .workspace_seed_emails.json .workspace_gmail_creds_seed.json
+    fi
+  else
+    echo "⚠️  Could not read Gmail secret from Secret Manager. Skipping seed injection."
+    rm -f .workspace_seed_emails.json .workspace_gmail_creds_seed.json
+  fi
+fi
+`;
+}
+
 function generateSetupScript(params) {
   const { datasetId, systemInstruction, referenceDate, publicDatasetId, suffix, tables, userGoal, dirName, useGoogleWorkspace } = params;
+  const workspaceSeedEmails = normalizeWorkspaceSeedEmails(params.workspaceSeedData || {});
+  const workspaceSeedEmailInjection =
+    useGoogleWorkspace && workspaceSeedEmails.length > 0
+      ? buildWorkspaceSeedEmailInjectionBlock(workspaceSeedEmails)
+      : '';
   
   const escapedInstruction = systemInstruction
     .replace(/\\/g, '\\\\\\\\')
@@ -1257,7 +1409,7 @@ ${useGoogleWorkspace ? `
 if [ "$1" = "--setup-gmail" ]; then
   PROJECT_ID=$(gcloud config get-value project 2>/dev/null)
   echo ""
-  echo "📧 Gmail OAuth Re-setup"
+  echo "📧 Gmail OAuth Re-setup (send + inbox insert / seed emails)"
   echo "────────────────────────────────────────────────────────────────────────────"
   echo "  Go to: https://console.cloud.google.com/apis/credentials?project=\$PROJECT_ID"
   echo "  Create Credentials → OAuth client ID → Desktop app"
@@ -1297,7 +1449,7 @@ if [ "$1" = "--setup-gmail" ]; then
   set +e
   gcloud auth application-default login \\
     --client-id-file="\$GMAIL_CLIENT_JSON" \\
-    --scopes=https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/gmail.send 2>&1 | tee "\$GCLOUD_AUTH_TMP"
+    --scopes=https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/gmail.send,https://www.googleapis.com/auth/gmail.insert 2>&1 | tee "\$GCLOUD_AUTH_TMP"
   GCLOUD_AUTH_STATUS=\${PIPESTATUS[0]}
   set -e
   GCLOUD_AUTH_OUT=\$(cat "\$GCLOUD_AUTH_TMP")
@@ -1528,8 +1680,9 @@ fi
 
 # ── Gmail: OAuth via gcloud --client-id-file (works in Cloud Shell and locally)
 echo ""
-echo "📧 Gmail send setup (OPTIONAL)"
+echo "📧 Gmail send + inbox seed setup (OPTIONAL)"
 echo "────────────────────────────────────────────────────────────────────────────"
+echo "  OAuth includes gmail.send AND gmail.insert (for LLM-authored seed emails)."
 echo "  gcloud credentials are blocked for Gmail in managed Workspace orgs."
 echo "  Gmail requires a Desktop App OAuth client from your GCP project."
 echo ""
@@ -1580,7 +1733,7 @@ if [[ "\$SETUP_GMAIL" =~ ^[Yy]$ ]]; then
     set +e
     gcloud auth application-default login \\
       --client-id-file="\$GMAIL_CLIENT_JSON" \\
-      --scopes=https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/gmail.send 2>&1 | tee "\$GCLOUD_AUTH_TMP"
+      --scopes=https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/gmail.send,https://www.googleapis.com/auth/gmail.insert 2>&1 | tee "\$GCLOUD_AUTH_TMP"
     GCLOUD_AUTH_STATUS=\${PIPESTATUS[0]}
     set -e
     GCLOUD_AUTH_OUT=\$(cat "\$GCLOUD_AUTH_TMP")
@@ -1935,7 +2088,7 @@ __ENV_EOF__
 # Symlink .env to packages for visibility
 ln -sf ../.env adk_agent/.env
 ln -sf ../../.env adk_agent/mcp_app/.env
-
+${workspaceSeedEmailInjection}
 # Ignore large directories to prevent Reason Engine payload bloating
 cat <<'__GITIGNORE_EOF__' > adk_agent/.gitignore
 .venv/
