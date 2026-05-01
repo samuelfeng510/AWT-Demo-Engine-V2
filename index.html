@@ -871,6 +871,58 @@
               </div>
             </button>
           </div>
+
+          <!-- Demo dimensions (shared across template & scratch flows; stays visible after method pick) -->
+          <div id="demoDimensionsPanel"
+            class="mb-10 p-6 rounded-3xl bg-white/[0.03] border border-white/10 shadow-inner backdrop-blur-sm">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div>
+                <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <span class="h-px flex-1 max-w-[2rem] bg-gradient-to-r from-sky-500/40 to-transparent"></span>
+                  Demo length
+                </p>
+                <p class="text-[11px] text-gray-400 mb-3 leading-snug">T-shirt sizing for how deep the scripted demo
+                  should run (5–10 min, 15–20 min, or 30+ min).</p>
+                <input type="hidden" id="demoLength" value="medium">
+                <div id="demoLengthGroup" class="inline-flex flex-wrap gap-1.5 p-1 rounded-2xl bg-black/25 border border-white/10 shadow-inner"
+                  role="group" aria-label="Demo length">
+                  <button type="button" onclick="setDemoDimension('demoLength','short', this)"
+                    class="demo-length-btn px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all border border-transparent text-gray-400 hover:text-sky-300 hover:bg-sky-500/10">
+                    Short</button>
+                  <button type="button" onclick="setDemoDimension('demoLength','medium', this)"
+                    class="demo-length-btn px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all border border-transparent text-gray-400 hover:text-sky-300 hover:bg-sky-500/10 ring-2 ring-sky-500/50 bg-sky-500/15 text-sky-200 border-sky-500/30 shadow-[0_0_20px_rgba(14,165,233,0.15)]">
+                    Medium</button>
+                  <button type="button" onclick="setDemoDimension('demoLength','long', this)"
+                    class="demo-length-btn px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all border border-transparent text-gray-400 hover:text-sky-300 hover:bg-sky-500/10">
+                    Long</button>
+                </div>
+              </div>
+              <div>
+                <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <span class="h-px flex-1 max-w-[2rem] bg-gradient-to-r from-emerald-500/40 to-transparent"></span>
+                  Workflow archetype
+                </p>
+                <p class="text-[11px] text-gray-400 mb-3 leading-snug">Shapes multi-service Workspace patterns: triage,
+                  analytics narrative, or end-to-end orchestration.</p>
+                <input type="hidden" id="workflowArchetype" value="triage_response">
+                <div id="workflowArchetypeGroup" class="flex flex-col sm:flex-row flex-wrap gap-1.5 p-1 rounded-2xl bg-black/25 border border-white/10 shadow-inner"
+                  role="group" aria-label="Workflow archetype">
+                  <button type="button"
+                    onclick="setDemoDimension('workflowArchetype','triage_response', this)"
+                    class="workflow-arch-btn flex-1 min-w-[8rem] px-3 py-2.5 rounded-xl text-[9px] font-bold uppercase tracking-wider transition-all border border-transparent text-gray-400 hover:text-emerald-300 hover:bg-emerald-500/10 ring-2 ring-emerald-500/50 bg-emerald-500/15 text-emerald-100 border-emerald-500/30 shadow-[0_0_18px_rgba(16,185,129,0.12)]">
+                    Triage &amp; Response</button>
+                  <button type="button" onclick="setDemoDimension('workflowArchetype','data_to_insight', this)"
+                    class="workflow-arch-btn flex-1 min-w-[8rem] px-3 py-2.5 rounded-xl text-[9px] font-bold uppercase tracking-wider transition-all border border-transparent text-gray-400 hover:text-emerald-300 hover:bg-emerald-500/10">
+                    Data to Insight</button>
+                  <button type="button"
+                    onclick="setDemoDimension('workflowArchetype','complex_orchestration', this)"
+                    class="workflow-arch-btn flex-1 min-w-[8rem] px-3 py-2.5 rounded-xl text-[9px] font-bold uppercase tracking-wider transition-all border border-transparent text-gray-400 hover:text-emerald-300 hover:bg-emerald-500/10">
+                    Complex Orchestration</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Container for Template Hub -->
           <div id="templateContainer" class="hidden opacity-0 transition-all duration-500 transform translate-y-4">
             <button onclick="switchMethod()"
@@ -1820,6 +1872,42 @@
     let currentSetupScript = '';
     let currentScriptFilename = 'setup.sh';
 
+    const DEMO_DIM_ACTIVE_LEN =
+      'ring-2 ring-sky-500/50 bg-sky-500/15 text-sky-200 border-sky-500/30 shadow-[0_0_20px_rgba(14,165,233,0.15)]';
+    const DEMO_DIM_IDLE_LEN =
+      'border-transparent text-gray-400 hover:text-sky-300 hover:bg-sky-500/10';
+    const DEMO_DIM_ACTIVE_ARCH =
+      'ring-2 ring-emerald-500/50 bg-emerald-500/15 text-emerald-100 border-emerald-500/30 shadow-[0_0_18px_rgba(16,185,129,0.12)]';
+    const DEMO_DIM_IDLE_ARCH =
+      'border-transparent text-gray-400 hover:text-emerald-300 hover:bg-emerald-500/10';
+
+    /**
+     * @param {'demoLength'|'workflowArchetype'} kind
+     * @param {string} value
+     * @param {HTMLElement} btn
+     */
+    function setDemoDimension(kind, value, btn) {
+      const hiddenId = kind === 'demoLength' ? 'demoLength' : 'workflowArchetype';
+      const hidden = document.getElementById(hiddenId);
+      if (hidden) hidden.value = value;
+
+      const groupClass = kind === 'demoLength' ? 'demo-length-btn' : 'workflow-arch-btn';
+      const wrap = btn && btn.parentElement;
+      if (wrap) {
+        wrap.querySelectorAll('.' + groupClass).forEach(b => {
+          const active = kind === 'demoLength' ? DEMO_DIM_ACTIVE_LEN : DEMO_DIM_ACTIVE_ARCH;
+          const idle = kind === 'demoLength' ? DEMO_DIM_IDLE_LEN : DEMO_DIM_IDLE_ARCH;
+          b.classList.remove(...active.split(' '));
+          b.classList.remove(...idle.split(' '));
+          if (b === btn) {
+            active.split(' ').filter(Boolean).forEach(c => b.classList.add(c));
+          } else {
+            idle.split(' ').filter(Boolean).forEach(c => b.classList.add(c));
+          }
+        });
+      }
+    }
+
     function selectMethod(method) {
       const selection = document.getElementById('methodSelection');
       const template = document.getElementById('templateContainer');
@@ -2380,7 +2468,9 @@
         tableCount: document.getElementById('tableCount').value,
         publicDatasetId: document.getElementById('publicDatasetId').value,
         usePublicDataset: document.getElementById('usePublicDataset').checked,
-        enableWorkspaceTools: document.getElementById('enableWorkspaceTools').checked
+        enableWorkspaceTools: document.getElementById('enableWorkspaceTools').checked,
+        demoLength: document.getElementById('demoLength').value,
+        workflowArchetype: document.getElementById('workflowArchetype').value
       };
 
       const stepsSection = document.getElementById('stepsSection');
