@@ -1234,6 +1234,39 @@
             </div>
           </div>
 
+          <!-- Google Drive demo kit links (filled when Apps Script provisioning succeeds) -->
+          <div id="demoArtifactsLinksSection"
+            class="hidden glass rounded-2xl p-6 mb-10 border border-emerald-500/25 bg-emerald-500/[0.04]">
+            <h3 class="text-sm font-bold text-white uppercase tracking-tight mb-3 flex items-center gap-2">
+              <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+              </svg>
+              Demo kit on Google Drive
+            </h3>
+            <p class="text-[11px] text-gray-400 mb-4 leading-relaxed">Your narrative guide, copy-paste prompts appendix,
+              and synthetic attachment files live under <code class="text-emerald-300/90">Demo / {demo folder}</code> in
+              the account running this generator.</p>
+            <div class="flex flex-col sm:flex-row flex-wrap gap-3">
+              <a id="demoGuideDocLink" href="#" target="_blank" rel="noopener noreferrer"
+                class="hidden items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 text-[11px] font-bold uppercase tracking-wide transition-colors">
+                <span>Open demo guide Doc</span>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                </svg>
+              </a>
+              <a id="demoDriveFolderLink" href="#" target="_blank" rel="noopener noreferrer"
+                class="hidden items-center gap-2 px-4 py-2.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-sky-300 text-[11px] font-bold uppercase tracking-wide transition-colors">
+                <span>Open demo Drive folder</span>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                </svg>
+              </a>
+            </div>
+          </div>
+
           <!-- Step 2: Review & Customize Assets -->
           <div id="section-step2" class="glass rounded-3xl p-8 border border-white/5 scroll-mt-8">
             <div class="flex items-center gap-3 mb-8">
@@ -2596,6 +2629,21 @@
 
       currentSuffix = res.suffix || '';
       currentDomainName = res.domainName || '';
+
+      const demoArtifactsSection = document.getElementById('demoArtifactsLinksSection');
+      const demoGuideDocLink = document.getElementById('demoGuideDocLink');
+      const demoDriveFolderLink = document.getElementById('demoDriveFolderLink');
+      if (demoArtifactsSection && demoGuideDocLink && demoDriveFolderLink) {
+        const docUrl = res.demoGuideDocUrl;
+        const folderUrl = res.demoDriveFolderUrl;
+        demoGuideDocLink.classList.toggle('hidden', !docUrl);
+        demoGuideDocLink.classList.toggle('inline-flex', !!docUrl);
+        demoDriveFolderLink.classList.toggle('hidden', !folderUrl);
+        demoDriveFolderLink.classList.toggle('inline-flex', !!folderUrl);
+        if (docUrl) demoGuideDocLink.href = docUrl;
+        if (folderUrl) demoDriveFolderLink.href = folderUrl;
+        demoArtifactsSection.classList.toggle('hidden', !(docUrl || folderUrl));
+      }
 
       // External Files Population
       const extFilesSection = document.getElementById('externalFilesSection');

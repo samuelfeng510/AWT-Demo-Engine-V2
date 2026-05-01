@@ -276,7 +276,8 @@ function generateDemo(userGoal, options = {}) {
     domainName: null,
     referenceDate: null,
     appliedFactors: null,
-    demoGuideDocUrl: null
+    demoGuideDocUrl: null,
+    demoDriveFolderUrl: null
   };
   
   try {
@@ -314,17 +315,29 @@ function generateDemo(userGoal, options = {}) {
     result.appliedFactors = planResult.appliedFactors || {};
 
     let demoGuideDocUrl = '';
+    let demoDriveFolderUrl = '';
     try {
-      const mdDoc = buildDemoGuideMarkdownFromPlan(planResult);
-      if (mdDoc && String(mdDoc).trim()) {
-        const docRes = createGoogleDocFromMarkdown(mdDoc, 'Demo Guide & Script — ' + dirName);
-        if (docRes && docRes.success && docRes.url) demoGuideDocUrl = docRes.url;
-        else if (docRes && docRes.error) console.error('[DemoGuideDoc]', docRes.error);
+      var asmDocs = buildDemoGuideDocAssembly_(planResult);
+      var hasNar = asmDocs.narratorMarkdown && String(asmDocs.narratorMarkdown).trim().length > 0;
+      var hasApp = asmDocs.appendixPrompts && asmDocs.appendixPrompts.length > 0;
+      if (hasNar || hasApp) {
+        var kitDocs = provisionDemoDriveKit_(
+          dirName,
+          asmDocs.narratorMarkdown || '',
+          asmDocs.appendixPrompts || [],
+          planResult.externalFiles || [],
+          'Demo Guide & Script — ' + dirName
+        );
+        if (kitDocs && kitDocs.success) {
+          demoGuideDocUrl = kitDocs.demoGuideDocUrl || '';
+          demoDriveFolderUrl = kitDocs.demoDriveFolderUrl || '';
+        } else if (kitDocs && kitDocs.error) console.error('[DemoDriveKit]', kitDocs.error);
       }
     } catch (docErr) {
-      console.error('[DemoGuideDoc]', docErr.message);
+      console.error('[DemoDriveKit]', docErr.message);
     }
     result.demoGuideDocUrl = demoGuideDocUrl || null;
+    result.demoDriveFolderUrl = demoDriveFolderUrl || null;
 
     result.setupScript = generateSetupScript({
       datasetId: datasetId,
@@ -337,7 +350,8 @@ function generateDemo(userGoal, options = {}) {
       userGoal: userGoal,
       useGoogleWorkspace: options.useGoogleWorkspace,
       workspaceSeedData: planResult.workspaceSeedData || {},
-      demoGuideDocUrl: demoGuideDocUrl
+      demoGuideDocUrl: demoGuideDocUrl,
+      demoDriveFolderUrl: demoDriveFolderUrl
     });
     result.steps.push({ step: 4, status: 'completed', message: 'Generation complete' });
     
@@ -633,6 +647,8 @@ The Markdown MUST be **presenter actionable** and richly structured, including:
 - **Expected agent behavior**: tools to invoke (conceptually — SQL reasoning, spreadsheet vs document reasoning), grounding expectations, graceful recovery if a tool fails.
 
 Use Markdown headings (levels 1–2), numbered steps, and bold callouts consistently.
+
+- **FILENAME DISCLOSURE (NARRATOR ONLY)**: Whenever the narration tells the presenter to attach or cross-reference synthetic files produced in this JSON, cite the **exact** \`externalFiles[].fileName\` values (e.g. the generated PDF/XLS names from your output). This is only for presenter-facing script text inside \`demoGuide\`; do **NOT** embed those filenames verbatim inside **scenarioPrompts** prompts (those remain generic: "uploaded file").
 
 ### scenarioPrompts (structured copy prompts — unchanged rules)
 Maintain the "scenarioPrompts" ARRAY that powers copy-paste agent prompts internally. Continue to obey **every** DEMO PROMPTS rule in "Critical Notes" (exactly five structured entries, personas, filenames ban, progressive arc, PDF+Excel mandates, geospatial synergy, etc.).
@@ -1377,13 +1393,21 @@ function generateSetupScript(params) {
       ? buildWorkspaceSeedEmailInjectionBlock(workspaceSeedEmails)
       : '';
   const demoGuideDocUrlParam = params.demoGuideDocUrl || '';
+  const demoDriveFolderUrlParam = params.demoDriveFolderUrl || '';
   const demoGuideEnvBlock = demoGuideDocUrlParam ? 'export DEMO_GUIDE_DOC_URL=' + JSON.stringify(demoGuideDocUrlParam) + '\n' : '';
+  const demoDriveFolderEnvBlock = demoDriveFolderUrlParam ? 'export DEMO_DRIVE_FOLDER_URL=' + JSON.stringify(demoDriveFolderUrlParam) + '\n' : '';
   const _demoGuideShellVarRef = '$' + '{DEMO_GUIDE_DOC_URL}';
-  const demoGuideUrlEchoSnippet =
+  const _demoDriveShellVarRef = '$' + '{DEMO_DRIVE_FOLDER_URL}';
+  const demoArtifactsEchoSnippet =
     '\n[ -n "' +
     _demoGuideShellVarRef +
     '" ] && echo "" && echo "📄 Your Demo Guide & Script: ' +
     _demoGuideShellVarRef +
+    '" && echo ""\n' +
+    '[ -n "' +
+    _demoDriveShellVarRef +
+    '" ] && echo "📂 Your Demo Drive folder: ' +
+    _demoDriveShellVarRef +
     '" && echo ""\n';
   
   const escapedInstruction = systemInstruction
@@ -1655,7 +1679,7 @@ echo
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     exit 1
 fi
-${demoGuideEnvBlock}
+${demoGuideEnvBlock}${demoDriveFolderEnvBlock}
 
 # --- 1.1 Authentication & Permissions Check ---
 echo "🔐 Checking authentication..."
@@ -3121,7 +3145,7 @@ if [ "$DEPLOY_CHOICE" = "3" ]; then
   echo "   • Your agent is now available in your Gemini Enterprise organization."
   echo "   • To CLEANUP:        bash setup-${dirName}.sh --cleanup"
   echo "========================================================="
-${demoGuideUrlEchoSnippet}
+${demoArtifactsEchoSnippet}
   exit 0
 fi
 
@@ -3157,7 +3181,7 @@ if [ "$DEPLOY_CHOICE" = "2" ]; then
   echo "   • The agent is now live at the URL above."
   echo "   • To CLEANUP:        bash setup-${dirName}.sh --cleanup"
   echo "========================================================="
-${demoGuideUrlEchoSnippet}
+${demoArtifactsEchoSnippet}
   exit 0
 fi
 
@@ -3213,7 +3237,7 @@ echo "   • To CLEANUP:        bash setup-${dirName}.sh --cleanup"
 echo ""
 echo "========================================================="
 echo ""
-${demoGuideUrlEchoSnippet}
+${demoArtifactsEchoSnippet}
 cd adk_agent
 ../.venv/bin/adk web --port \$PORT --allow_origins="*"
 `;
@@ -3391,8 +3415,220 @@ function include(filename) {
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
 
+/** @returns {GoogleAppsScript.Drive.Folder} */
+function getOrCreateFolderByName_(parent, folderName) {
+  var it = parent.getFoldersByName(folderName);
+  if (it.hasNext()) return it.next();
+  return parent.createFolder(folderName);
+}
+
+/** @param {Array<{id:string,fileName:string}>|null|undefined} externalFiles */
+function resolveExternalFileNameById_(rid, externalFiles) {
+  if (!rid || !String(rid).trim()) return '';
+  var id = String(rid).trim();
+  var arr = externalFiles || [];
+  for (var i = 0; i < arr.length; i++) {
+    var f = arr[i];
+    if (!f || f.id === undefined || f.id === null) continue;
+    if (String(f.id) === id && f.fileName) return String(f.fileName);
+  }
+  return '';
+}
+
+function stripMarkdownBoldMarkers_(text) {
+  return String(text || '').replace(/\*\*/g, '');
+}
+
+/**
+ * Narrator script from demoGuideMarkdown only; appendix rows from structured planResult.demoGuide + externalFiles ids.
+ */
+function buildDemoGuideDocAssembly_(planResult) {
+  var narratorMarkdown = '';
+  if (planResult && planResult.demoGuideMarkdown) {
+    narratorMarkdown = String(planResult.demoGuideMarkdown).trim();
+  }
+
+  var appendixPrompts = [];
+  var steps = planResult && Array.isArray(planResult.demoGuide) ? planResult.demoGuide : [];
+  var ext = planResult && planResult.externalFiles ? planResult.externalFiles : [];
+
+  for (var i = 0; i < steps.length; i++) {
+    var step = steps[i];
+    if (!step || typeof step !== 'object') continue;
+    var rid = step.requiredFileId !== undefined && step.requiredFileId !== null ? String(step.requiredFileId).trim() : '';
+    var attachmentName = rid ? resolveExternalFileNameById_(rid, ext) : '';
+    appendixPrompts.push({
+      index: appendixPrompts.length + 1,
+      title: String(step.title || 'Prompt ' + (appendixPrompts.length + 1)),
+      attachmentName: attachmentName,
+      promptPlain: stripMarkdownBoldMarkers_(step.prompt || '')
+    });
+  }
+
+  return { narratorMarkdown: narratorMarkdown, appendixPrompts: appendixPrompts };
+}
+
+function applyMarkdownBoldToElement_(element, plainTextLine) {
+  var plain = plainTextLine === null || plainTextLine === undefined ? '' : String(plainTextLine);
+  var parts = plain.split('**');
+  if (parts.length <= 1) {
+    element.setText(plain);
+    return;
+  }
+
+  var newText = '';
+  var boldRanges = [];
+  var j;
+  for (j = 0; j < parts.length; j++) {
+    if (j % 2 === 1) {
+      var start = newText.length;
+      newText += parts[j];
+      boldRanges.push({ start: start, end: newText.length - 1 });
+    } else {
+      newText += parts[j];
+    }
+  }
+  element.setText(newText);
+  var textElement = element.editAsText();
+  for (var b = 0; b < boldRanges.length; b++) {
+    var r = boldRanges[b];
+    textElement.setBold(r.start, r.end, true);
+  }
+}
+
+function fillGoogleDocBodyFromMarkdown_(body, markdownContent) {
+  var content = markdownContent === null || markdownContent === undefined ? '' : String(markdownContent);
+  var lines = content.split(/\r?\n/);
+  var li;
+  for (li = 0; li < lines.length; li++) {
+    var trimmed = lines[li].trim();
+    if (!trimmed) {
+      body.appendParagraph('');
+      continue;
+    }
+
+    var hMatch = trimmed.match(/^(#{1,3})\s+(.+)$/);
+    if (hMatch) {
+      var lvl = hMatch[1].length;
+      var htext = hMatch[2];
+      var pHeading = DocumentApp.ParagraphHeading.NORMAL;
+      if (lvl === 1) pHeading = DocumentApp.ParagraphHeading.HEADING1;
+      else if (lvl === 2) pHeading = DocumentApp.ParagraphHeading.HEADING2;
+      else pHeading = DocumentApp.ParagraphHeading.HEADING3;
+      var hp = body.appendParagraph('');
+      hp.setHeading(pHeading);
+      applyMarkdownBoldToElement_(hp, htext);
+      continue;
+    }
+
+    var bulletDash = trimmed.match(/^[-*]\s+(.+)$/);
+    if (bulletDash) {
+      var btext = bulletDash[1];
+      var lp = body.appendListItem(btext);
+      lp.setGlyphType(DocumentApp.GlyphType.BULLET);
+      applyMarkdownBoldToElement_(lp, btext);
+      continue;
+    }
+
+    var np = body.appendParagraph('');
+    np.setHeading(DocumentApp.ParagraphHeading.NORMAL);
+    applyMarkdownBoldToElement_(np, trimmed);
+  }
+}
+
+/** @param {Array<{index:number,title:string,attachmentName:string,promptPlain:string}>} appendixPrompts */
+function appendPromptAppendixToBody_(body, appendixPrompts) {
+  if (!appendixPrompts || appendixPrompts.length === 0) return;
+  body.appendParagraph('');
+  var h2 = body.appendParagraph('Copy-paste prompts');
+  h2.setHeading(DocumentApp.ParagraphHeading.HEADING2);
+
+  for (var pi = 0; pi < appendixPrompts.length; pi++) {
+    var ap = appendixPrompts[pi];
+    var h3 = body.appendParagraph('Prompt ' + ap.index + ': ' + ap.title);
+    h3.setHeading(DocumentApp.ParagraphHeading.HEADING3);
+
+    body.appendParagraph(
+      ap.attachmentName
+        ? 'Attachment — upload this file when running the demo: ' + ap.attachmentName
+        : 'Attachment — none required for this prompt.'
+    );
+
+    body.appendParagraph('Prompt text (copy into the agent):');
+    var pLines = String(ap.promptPlain || '').split(/\r?\n/);
+    for (var lj = 0; lj < pLines.length; lj++) {
+      var pl = body.appendParagraph(pLines[lj]);
+      pl.setHeading(DocumentApp.ParagraphHeading.NORMAL);
+    }
+  }
+}
+
+function mimeBlobTypeForDemoFile_(externalFileEntry) {
+  var fn = (externalFileEntry && externalFileEntry.fileName) ? String(externalFileEntry.fileName).toLowerCase() : '';
+  var m = (externalFileEntry && externalFileEntry.mimeType) ? String(externalFileEntry.mimeType).toLowerCase() : '';
+  if (m.indexOf('pdf') >= 0 || fn.endsWith('.pdf')) return MimeType.PDF;
+  if (m.indexOf('spreadsheet') >= 0 || m.indexOf('excel') >= 0 || fn.endsWith('.xlsx')) {
+    return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  }
+  if (fn.endsWith('.csv')) return 'text/csv';
+  return MimeType.PLAIN_TEXT;
+}
+
+/**
+ * Places Demo Guide Doc + attachment blobs under Demo/{dirName}; link-sharing on folder & doc.
+ */
+function provisionDemoDriveKit_(dirName, narratorMarkdown, appendixPrompts, externalFiles, docTitle) {
+  var out = {
+    success: false,
+    demoGuideDocUrl: '',
+    demoDriveFolderUrl: '',
+    demoGuideDocId: ''
+  };
+
+  try {
+    var safeTitle = docTitle ? String(docTitle).trim() : 'Demo Guide & Script';
+    if (safeTitle.length > 150) safeTitle = safeTitle.substring(0, 150);
+
+    var demoRoot = getOrCreateFolderByName_(DriveApp.getRootFolder(), 'Demo');
+    var agentFolder = getOrCreateFolderByName_(demoRoot, dirName);
+
+    var doc = DocumentApp.create(safeTitle);
+    var docId = doc.getId();
+    fillGoogleDocBodyFromMarkdown_(doc.getBody(), narratorMarkdown || '');
+    appendPromptAppendixToBody_(doc.getBody(), appendixPrompts || []);
+    doc.saveAndClose();
+
+    var docFile = DriveApp.getFileById(docId);
+    docFile.moveTo(agentFolder);
+    docFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+    var xf = externalFiles || [];
+    for (var xi = 0; xi < xf.length; xi++) {
+      var ex = xf[xi];
+      if (!ex || !ex.fileName) continue;
+      var rawContent = ex.fileContent !== undefined && ex.fileContent !== null ? String(ex.fileContent) : '';
+      var blob = Utilities.newBlob(rawContent, mimeBlobTypeForDemoFile_(ex), ex.fileName);
+      var f = agentFolder.createFile(blob);
+      f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    }
+
+    agentFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+    out.success = true;
+    out.demoGuideDocUrl = docFile.getUrl();
+    out.demoDriveFolderUrl = agentFolder.getUrl();
+    out.demoGuideDocId = docId;
+    return out;
+  } catch (e) {
+    console.error('[DemoDriveKit]', e.message);
+    out.error = e.message;
+    return out;
+  }
+}
+
 /**
  * Prefers narrator Markdown from planning; synthesizes Markdown from structured scenario prompts if absent.
+ * @deprecated Prefer buildDemoGuideDocAssembly_ + provisionDemoDriveKit_ for persisted docs.
  */
 function buildDemoGuideMarkdownFromPlan(planResult) {
   if (!planResult) return '';
@@ -3415,81 +3651,18 @@ function buildDemoGuideMarkdownFromPlan(planResult) {
 }
 
 /**
- * Creates a Google Doc from basic Markdown (#/##/###, - bullets, **bold**) and shares view-anyone-with-link.
+ * Creates a Google Doc from basic Markdown (#/##/###, - bullets, **bold**), optional appendix prompts, shares view-anyone-with-link.
  * @returns {{success:boolean, url?: string, docId?: string, error?: string}}
  */
-function createGoogleDocFromMarkdown(markdownContent, docTitle) {
+function createGoogleDocFromMarkdown(markdownContent, docTitle, appendixPrompts) {
   try {
-    var content = markdownContent === null || markdownContent === undefined ? '' : String(markdownContent);
     var titleBase = docTitle ? String(docTitle).trim() : 'Demo Guide & Script';
     if (titleBase.length > 150) titleBase = titleBase.substring(0, 150);
 
-    function applyBoldToParagraph_(element, plainTextLine) {
-      var plain = plainTextLine === null || plainTextLine === undefined ? '' : String(plainTextLine);
-      var parts = plain.split('**');
-      if (parts.length <= 1) {
-        element.setText(plain);
-        return;
-      }
-
-      var newText = '';
-      var boldRanges = [];
-      var j;
-      for (j = 0; j < parts.length; j++) {
-        if (j % 2 === 1) {
-          var start = newText.length;
-          newText += parts[j];
-          boldRanges.push({ start: start, end: newText.length - 1 });
-        } else {
-          newText += parts[j];
-        }
-      }
-      element.setText(newText);
-      var textElement = element.editAsText();
-      for (var b = 0; b < boldRanges.length; b++) {
-        var r = boldRanges[b];
-        textElement.setBold(r.start, r.end, true);
-      }
-    }
-
     var doc = DocumentApp.create(titleBase);
     var body = doc.getBody();
-
-    var lines = content.split(/\r?\n/);
-    for (var li = 0; li < lines.length; li++) {
-      var trimmed = lines[li].trim();
-      if (!trimmed) {
-        body.appendParagraph('');
-        continue;
-      }
-
-      var hMatch = trimmed.match(/^(#{1,3})\s+(.+)$/);
-      if (hMatch) {
-        var lvl = hMatch[1].length;
-        var htext = hMatch[2];
-        var pHeading = DocumentApp.ParagraphHeading.NORMAL;
-        if (lvl === 1) pHeading = DocumentApp.ParagraphHeading.HEADING1;
-        else if (lvl === 2) pHeading = DocumentApp.ParagraphHeading.HEADING2;
-        else pHeading = DocumentApp.ParagraphHeading.HEADING3;
-        var hp = body.appendParagraph('');
-        hp.setHeading(pHeading);
-        applyBoldToParagraph_(hp, htext);
-        continue;
-      }
-
-      var bulletDash = trimmed.match(/^[-*]\s+(.+)$/);
-      if (bulletDash) {
-        var btext = bulletDash[1];
-        var lp = body.appendListItem(btext);
-        lp.setGlyphType(DocumentApp.GlyphType.BULLET);
-        applyBoldToParagraph_(lp, btext);
-        continue;
-      }
-
-      var np = body.appendParagraph('');
-      np.setHeading(DocumentApp.ParagraphHeading.NORMAL);
-      applyBoldToParagraph_(np, trimmed);
-    }
+    fillGoogleDocBodyFromMarkdown_(body, markdownContent || '');
+    appendPromptAppendixToBody_(body, appendixPrompts || []);
 
     doc.saveAndClose();
 
