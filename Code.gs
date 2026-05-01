@@ -307,6 +307,8 @@ function generateDemo(userGoal, options = {}) {
     result.referenceDate = planResult.referenceDate;
     result.publicDatasetId = planResult.publicDatasetId;
     result.demoGuide = planResult.demoGuide;
+    result.demoGuideMarkdown = planResult.demoGuideMarkdown || '';
+    result.workspaceSeedData = planResult.workspaceSeedData || {};
     result.externalFiles = planResult.externalFiles || [];
     result.appliedFactors = planResult.appliedFactors || {};
 
@@ -506,16 +508,51 @@ function planAndGenerateData(userGoal, options) {
   // Validation and Clean-up
   validateGeneratedData(parsed, options.rowCount);
 
+  const planningExtras = normalizePlanningPromptOutputs(parsed);
+
   return {
     tables: parsed.tables,
     systemInstruction: parsed.systemInstruction,
     referenceDate: parsed.referenceDate || '2023-11-01',
     publicDatasetId: parsed.publicDatasetId || options.publicDatasetId,
     oneSentenceSummary: parsed.oneSentenceSummary || null,
-    demoGuide: parsed.demoGuide,
+    demoGuide: planningExtras.demoGuideForUi,
+    demoGuideMarkdown: planningExtras.demoGuideMarkdown,
+    workspaceSeedData: planningExtras.workspaceSeedData,
     externalFiles: parsed.externalFiles || [],
     appliedFactors: parsed.appliedFactors || null,
     dataPreview: dataPreview
+  };
+}
+
+/**
+ * Maps new planning JSON keys (scenarioPrompts + markdown demoGuide) onto fields the web UI expects.
+ */
+function normalizePlanningPromptOutputs(parsed) {
+  let demoGuideMarkdown = '';
+  const rawDg = parsed.demoGuide;
+  if (typeof rawDg === 'string') {
+    demoGuideMarkdown = rawDg;
+  } else if (Array.isArray(rawDg) && rawDg.length && typeof rawDg[0] === 'string') {
+    demoGuideMarkdown = rawDg.join('\n\n---\n\n');
+  }
+
+  let demoGuideForUi = [];
+  if (parsed.scenarioPrompts && Array.isArray(parsed.scenarioPrompts) && parsed.scenarioPrompts.length) {
+    demoGuideForUi = parsed.scenarioPrompts;
+  } else if (Array.isArray(rawDg) && rawDg.length && typeof rawDg[0] === 'object') {
+    demoGuideForUi = rawDg;
+  }
+
+  let ws = parsed.workspaceSeedData;
+  if (ws !== null && ws !== undefined && typeof ws !== 'object') {
+    ws = {};
+  }
+
+  return {
+    demoGuideMarkdown: demoGuideMarkdown,
+    workspaceSeedData: ws || {},
+    demoGuideForUi: demoGuideForUi
   };
 }
 
@@ -527,6 +564,64 @@ function buildPlanningPrompt(userGoal, options) {
        * CONSTRAINT: DO NOT use this dataset as a replacement for core business operations (e.g., do not use public orders/customers if you are generating a retail demo).
        * JOIN STRATEGY: Link via common attributes like 'zip_code', 'category', 'region', or 'date' rather than internal system IDs.`
     : `- IMPORTANT: NO public dataset should be used for this demo. Focus ONLY on synthetic tables below. Do NOT attempt to JOIN with external public-data.`;
+
+  const demoLengthKey = String(options.demoLength || 'medium').toLowerCase();
+  const workflowArchetypeKey = String(options.workflowArchetype || 'triage_response').toLowerCase();
+
+  const demoLengthGuide = ({
+    short: 'Short (~5-10 minutes): Prefer a narrower scope, fewer seeded Workspace artifacts, and a quicker resolution arc while still respecting all table/external-file rules below.',
+    medium: 'Medium (~15-20 minutes): Balanced depth — cross-system insights, moderate pacing, several presenter beats.',
+    long: 'Long (30+ minutes): Full storyline — richer workspaceSeedData, more presenter steps, and end-to-end cadence.'
+  })[demoLengthKey] || `Calibrate pacing and richness to demo length "${demoLengthKey}".`;
+
+  const archetypeGuide = ({
+    triage_response: 'Triage & Response: Emphasize inbound issue handling (e.g., customer inquiries, tickets, leads). Seed materials should foreshadow classify → investigate in data → propose reply or drafted artifact.',
+    data_to_insight: 'Data to Insight: Emphasize analytical progression from anomalies in warehouse data → exec-ready narrative (e.g., Slides-ready storyline, metric callouts referencing your synthetic tables only).',
+    complex_orchestration: 'Complex Orchestration: Emphasize multi-step operational flows (alert → analysis → workbook or doc synthesis → escalation / stakeholder ping). Seeds should cue several dependent actions across channels.'
+  })[workflowArchetypeKey] || `Shape the storyline to workflow archetype "${workflowArchetypeKey}".`;
+
+  const orchestrationBlock = `
+## Demo orchestration profile (respect alongside ALL BigQuery constraints below)
+- **Selected demo length (UI)**: "${demoLengthKey}" — ${demoLengthGuide}
+- **Selected workflow archetype (UI)**: "${workflowArchetypeKey}" — ${archetypeGuide}
+
+**SCENARIO ADAPTATION (REQUIRED)**:
+1. Interpret and **re-frame the BUSINESS PROBLEM** so the operative demo narrative clearly reflects the archetype (${workflowArchetypeKey}), without contradicting facts the user supplied.
+2. Keep **CSV schemas, relational rules, anomalies, PDF/Excel requirements, row targets, joins, naming, language rules** exactly as mandated in sections below — only adapt *story-facing* fields (instructions, summaries, seeded text content, anomaly *labels/context* where logical).
+3. **Scale** the "workspaceSeedData" object complexity and the **detail level** of the Markdown "demoGuide" to demo length (${demoLengthKey}): short = leaner scripts; long = fuller multi-act script.
+4. "workspaceSeedData" is for eventual deployment-time injection (conceptual Gmail/Chat/Docs payloads). Align seeds with BOTH the archetype and the synthetic IDs/facts already present or implied in "tables" / "externalFiles"; do not invent contradictory transaction keys.
+
+## Workspace seeding & Markdown demo narration (additive)
+Produce **workspaceSeedData** and **demoGuide** in addition to all existing outputs. Treat these as narrator-facing collateral; warehouse generation rules remain authoritative.
+
+### workspaceSeedData
+Return a SINGLE JSON object (see schema in output example) capturing **realistic exemplar payloads** suited to Workspace-style prep (to be scripted later outside this step). Populate only what fits the scenario; omit empty arrays. Examples of useful keys (all optional unless you need them for the archetype):
+
+- "sampleEmails" / "emailsToInject": subject, plaintext or Markdown-style body (escape newlines appropriately for JSON), from, to, synthetic thread identifiers tied to seeded anomalies.
+- "chatThreads" / "chatScenarios": ordered messages with speaker role and text for Google Chat-like replay.
+- "calendarHooks": optional briefing titles/time hints (text only).
+- "docSynopsis" / "sheetSynopsis": bullet outlines referencing **which tables** the demo will hinge on (no hallucinated schemas beyond yours).
+- "presentationBeats": optional bullets for eventual Slides script (titles + key figures to cite from data).
+- "prepChecklist": strings presenter does before demo (GCP side — generic wording).
+
+Ensure content **languages** match the business problem language. Keep payloads professional; no placeholders like "TODO".
+
+### demoGuide (Markdown)
+Supply **demoGuide** as either ONE comprehensive Markdown STRING **or** an ARRAY OF Markdown STRING sections (acts/chapters joined logically in narrative order).
+
+The Markdown MUST be **presenter actionable** and richly structured, including:
+- Estimated timing buckets aligned with "${demoLengthKey}" demo length expectations.
+- Roles (presenter vs. hypothetical stakeholder).
+- **What to click / where to navigate** (use product-generic wording, e.g. "open the agent pane", avoiding unnecessary vendor trademarks in instructions).
+- **What to SAY** — sample scripted lines tied to seeded anomalies / archetype transitions.
+- **Expected agent behavior**: tools to invoke (conceptually — SQL reasoning, spreadsheet vs document reasoning), grounding expectations, graceful recovery if a tool fails.
+
+Use Markdown headings (levels 1–2), numbered steps, and bold callouts consistently.
+
+### scenarioPrompts (structured copy prompts — unchanged rules)
+Maintain the "scenarioPrompts" ARRAY that powers copy-paste agent prompts internally. Continue to obey **every** DEMO PROMPTS rule in "Critical Notes" (exactly five structured entries, personas, filenames ban, progressive arc, PDF+Excel mandates, geospatial synergy, etc.).
+
+`;
   
   return `You are a versatile data analyst and BigQuery expert capable of generating realistic datasets for ANY industry or business function.
 Design and generate a demo dataset based on the following business problem.
@@ -543,6 +638,8 @@ Design and generate a demo dataset based on the following business problem.
 
 ## Business Problem
 ${userGoal}
+
+${orchestrationBlock}
 
 ## Requirements
 - Number of tables: ${options.tableCount}
@@ -647,18 +744,37 @@ Output in the following JSON format. Output **pure JSON only without code blocks
     "correlations": ["List of 2-3 specific data correlations applied (e.g., 'Region-specific product preference', 'High-tier customer loyalty frequency')"],
     "businessLogic": ["List of 2-3 specific business logic constraints applied (e.g., 'Inventory threshold triggers', 'Sequential status transition integrity')"]
   },
-  "demoGuide": [
+  "workspaceSeedData": {
+    "archetypeEcho": "${workflowArchetypeKey}",
+    "demoLengthEcho": "${demoLengthKey}",
+    "summary": "1-3 sentences aligning seeds with seeded anomalies/archetype",
+    "emailsToInject": [
+      {"threadIdHint": "triage-001", "from": "person@example.com", "to": "agent-inbox@example.com", "subject": "Synthetic issue tied to seeded anomaly", "bodyPlain": "Detailed email referencing IDs that exist in CSV/PDF artefacts", "intent": "triage_followup"}
+    ],
+    "chatScenarios": [
+      {"topic": "Ops bridge", "messages": [{"role": "user", "text": "Ping referencing anomaly IDs echoed in warehouse tables"}]}
+    ],
+    "docSynopsis": ["Bullets outlining Doc narrative tied to anomalies"],
+    "sheetSynopsis": ["Metrics presenters should cite from BigQuery reasoning"],
+    "prepChecklist": ["Verify dataset loaded", "Prepare agent pane", "Have external files handy"]
+  },
+  "demoGuide": "# End-to-End Demo Script\\n\\n## 0. Setup (Xm)\\nPresenter actions...\\n\\n## Expected agent behavior\\n...",
+  "scenarioPrompts": [
     {
-      "title": "Descriptive title of the analysis (e.g., 'Geospatial Root Cause Analysis')",
-      "prompt": "Full prompt for the user to copy. Rules: 1. Do NOT mention specific table or column names (the agent must find them). 2. Present as a complex business question. 3. Synergize system data analysis with location/geospatial capabilities if applicable. 4. NEVER use product names like 'BigQuery', 'Google Maps', 'Looker' in the prompt. Use generic terms like 'the system records', 'the map data', 'historical logs'. If a file is required, use generic phrasing ('the uploaded file'). 5. **PROMPT SOPHISTICATION**: Prompts must not be direct lookups. They must be open-ended, diagnostic, or strategic requiring multi-hop reasoning.",
-      "requiredFileId": "file1 or empty",
-      "tags": ["Select tags like 'Finance', 'Geospatial', 'Reconciliation'"]
+      "title": "Prompt 1 — Multi-table correlation arc",
+      "prompt": "...copy-ready user utterance respecting all DEMO PROMPTS rules below...",
+      "requiredFileId": "",
+      "tags": ["Progressive"]
     }
   ]
 }
 
+**IMPORTANT — demoGuide + scenarioPrompts**:
+- The "scenarioPrompts" array MUST contain **exactly 5 objects** shaped like the first entry shown (vary titles/content per Critical Notes).
+- The "demoGuide" field MUST be **either one Markdown STRING** (use \\n escapes for newlines inside JSON) **or an ARRAY of Markdown STRING chapters** (e.g., separate strings "# Act I\\n...", "# Act II\\n..."). Never put narrator script content inside "scenarioPrompts"; never encode the Markdown narrator script as structured {title,prompt} objects inside "demoGuide".
+
 ## Critical Notes
-- **DEMO PROMPTS (CRITICAL)**: Generate EXACTLY 5 structured demo prompts that showcase the agent's "reasoning" and "tool-use" capabilities.
+- **DEMO PROMPTS (CRITICAL)**: Generate EXACTLY 5 structured demo prompts inside the **scenarioPrompts** JSON array that showcase the agent's "reasoning" and "tool-use" capabilities.
     - **NO FILENAMES (CRITICAL)**: DO NOT include specific file names or extensions (e.g., 'market_report_2024', 'data.tsv') in the prompt text. Use generic phrasing.
     1. **DISTRIBUTION & ADVANCED PROGRESSION (CRITICAL)**: At least 3 prompts MUST be "No file required". Generate prompts in a progressive advanced arc:
         - Prompt 1: Advanced Multi-Table Correlation (Join multiple tables right off the bat, no simple aggregations).
@@ -696,7 +812,9 @@ Output in the following JSON format. Output **pure JSON only without code blocks
     - STRING values in the CSV data (e.g., product names, categories, person names, names of things)
     - systemInstruction
     - appliedFactors descriptions
-    - demoGuide titles and prompts
+    - scenarioPrompts titles and prompts (five structured demo utterances)
+    - demoGuide Markdown narration (presenter-facing script)
+    - workspaceSeedData free-text fields (emails bodies, chat text, synopsis bullets, summaries)
     - externalFiles fileName and fileContent
 - **TECHNICAL NAMES (CRITICAL)**: Table names, column names, and ALL ID fields (primary/foreign keys) MUST use English (snake_case) for technical compatibility and data integrity. Do NOT translate technical identifiers.
 - **ABSTRACT INSTRUCTIONS**: Do NOT mention column names in prompts.
