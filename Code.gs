@@ -17,11 +17,7 @@ const CONFIG = {
   MODEL: SCRIPT_PROPS.getProperty('MODEL') || 'gemini-3.1-pro-preview',
   LOG_SHEET_URL: SCRIPT_PROPS.getProperty('LOG_SHEET_URL'),
   MAX_RETRIES: 3,
-  RETRY_DELAY_MS: 1000,
-  APP_VERSION: 'v1.0',
-  /** Public repo for GitHub commit feed in "What's New" (no auth; no secrets in repo). */
-  GITHUB_COMMITS_API:
-    'https://api.github.com/repos/samuelfeng510/AWT-Demo-Engine-V2/commits'
+  RETRY_DELAY_MS: 1000
 };
 
 /** In-memory cache for service account access token (valid within a single execution). */
@@ -73,8 +69,6 @@ function doGet() {
 
   const template = HtmlService.createTemplateFromFile('index');
   
-  template.appVersion = CONFIG.APP_VERSION;
-  template.updateLog = JSON.stringify(fetchGitLogs());
   template.projectId = CONFIG.PROJECT_ID;
   template.userEmail = Session.getActiveUser().getEmail();
   
@@ -322,22 +316,20 @@ function generateDemo(userGoal, options = {}) {
     let demoGuideDocUrl = '';
     let demoDriveFolderUrl = '';
     try {
+      // Always provision the Drive kit when generation succeeds so the UI gets demo guide + folder URLs.
+      // (Markdown may be empty briefly if the planner returns storyboard-only; external files still need a folder.)
       var asmDocs = buildDemoGuideDocAssembly_(planResult);
-      var mdNar = asmDocs.narratorMarkdown && String(asmDocs.narratorMarkdown).trim();
-      var hasScenes = !!(asmDocs.storyboard && asmDocs.storyboard.scenes && asmDocs.storyboard.scenes.length);
-      if (mdNar || hasScenes) {
-        var kitDocs = provisionDemoDriveKit_(
-          dirName,
-          asmDocs.storyboard || {},
-          asmDocs.narratorMarkdown || '',
-          planResult.externalFiles || [],
-          'Demo Guide & Script — ' + dirName
-        );
-        if (kitDocs && kitDocs.success) {
-          demoGuideDocUrl = kitDocs.demoGuideDocUrl || '';
-          demoDriveFolderUrl = kitDocs.demoDriveFolderUrl || '';
-        } else if (kitDocs && kitDocs.error) console.error('[DemoDriveKit]', kitDocs.error);
-      }
+      var kitDocs = provisionDemoDriveKit_(
+        dirName,
+        asmDocs.storyboard || {},
+        asmDocs.narratorMarkdown || '',
+        planResult.externalFiles || [],
+        'Demo Guide & Script — ' + dirName
+      );
+      if (kitDocs && kitDocs.success) {
+        demoGuideDocUrl = kitDocs.demoGuideDocUrl || '';
+        demoDriveFolderUrl = kitDocs.demoDriveFolderUrl || '';
+      } else if (kitDocs && kitDocs.error) console.error('[DemoDriveKit]', kitDocs.error);
     } catch (docErr) {
       console.error('[DemoDriveKit]', docErr.message);
     }
@@ -3452,38 +3444,6 @@ function executeWithRetry(fn) {
 
 
 
-/**
- * Fetches recent commit history from GitHub API as update logs.
- * Fallbacks to static CONFIG.UPDATE_LOG if API fails.
- */
-function fetchGitLogs() {
-  const repoUrl = CONFIG.GITHUB_COMMITS_API;
-  try {
-    const response = UrlFetchApp.fetch(repoUrl + '?per_page=10', {
-      muteHttpExceptions: true,
-      headers: { 'Accept': 'application/vnd.github.v3+json' }
-    });
-    
-    if (response.getResponseCode() === 200) {
-      const commits = JSON.parse(response.getContentText());
-      return commits.map(c => {
-        const msg = c.commit.message.split('\n')[0];
-        const versionMatch = msg.match(/v\d+\.\d+\.\d+/);
-        const version = versionMatch ? versionMatch[0] : c.sha.substring(0, 7);
-        
-        return {
-          version: version,
-          date: c.commit.author.date.split('T')[0],
-          note: msg
-        };
-      });
-    }
-  } catch (e) {
-    // console.log('GitHub API Error:', e.message);
-  }
-  return CONFIG.UPDATE_LOG; 
-}
-
 function updateSystemInstruction(setupScript, newInstruction) {
   const escaped = newInstruction.replace(/\\/g, '\\\\').replace(/'/g, "'\\''").replace(/\n/g, '\\n');
   return setupScript.replace(/(1\.\s+\*\*BigQuery toolset:\*\*.*?\n)([\s\S]*?)(\n\s+2\.\s+\*\*Maps Toolset:\*\*)/, `$1${escaped}$3`);
@@ -3683,6 +3643,196 @@ function mimeBlobTypeForDemoFile_(externalFileEntry) {
 }
 
 /**
+ * Planner Excel payloads are TSV (tabs); builds a rectangular grid for Sheets.
+ * @returns {string[][]}
+ */
+function parseTabSeparatedGridForSheet_(rawContent) {
+  var text = rawContent === undefined || rawContent === null ? '' : String(rawContent);
+  var lines = text.split(/\r?\n/);
+  var rows = [];
+  var maxCols = 0;
+  var li;
+  for (li = 0; li < lines.length; li++) {
+    var cells = lines[li].split('\t');
+    var ci;
+    for (ci = 0; ci < cells.length; ci++) {
+      var v = cells[ci];
+      if (v.length > 50000) cells[ci] = v.substring(0, 50000);
+    }
+    rows.push(cells);
+    if (cells.length > maxCols) maxCols = cells.length;
+  }
+  if (maxCols === 0) return [['']];
+  var ri;
+  for (ri = 0; ri < rows.length; ri++) {
+    while (rows[ri].length < maxCols) rows[ri].push('');
+  }
+  return rows;
+}
+
+/** Safe spreadsheet title from planned .xlsx file name. */
+function spreadsheetTitleFromExcelFileName_(fileName) {
+  var base = String(fileName || 'spreadsheet').replace(/\.xlsx$/i, '');
+  base = base.replace(/[\\/]/g, '-').trim();
+  if (!base) base = 'spreadsheet';
+  if (base.length > 99) base = base.substring(0, 99);
+  return base;
+}
+
+/**
+ * Creates a native Google Sheet from TSV-style content, moves it into the demo folder, then adds a real .xlsx
+ * exported from that sheet (binary matches Google's Excel export for the same grid).
+ */
+function provisionGoogleSheetAndXlsxFromTsvContent_(agentFolder, externalFileEntry, rawContent) {
+  var ex = externalFileEntry || {};
+  var fileName = ex.fileName ? String(ex.fileName) : 'export.xlsx';
+  var title = spreadsheetTitleFromExcelFileName_(fileName);
+  var grid = parseTabSeparatedGridForSheet_(rawContent);
+  var numRows = grid.length;
+  var numCols = grid[0].length;
+
+  var ss = SpreadsheetApp.create(title);
+  var sheet = ss.getSheets()[0];
+  sheet.getRange(1, 1, numRows, numCols).setValues(grid);
+  SpreadsheetApp.flush();
+
+  var sheetFile = DriveApp.getFileById(ss.getId());
+  sheetFile.moveTo(agentFolder);
+  sheetFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+  var xlsxBlob = sheetFile.getAs(MimeType.MICROSOFT_EXCEL);
+  xlsxBlob.setName(fileName);
+  var xlsxDriveFile = agentFolder.createFile(xlsxBlob);
+  xlsxDriveFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+}
+
+function isDemoExternalPdf_(externalFileEntry) {
+  var fn = (externalFileEntry && externalFileEntry.fileName) ? String(externalFileEntry.fileName).toLowerCase() : '';
+  var m = (externalFileEntry && externalFileEntry.mimeType) ? String(externalFileEntry.mimeType).toLowerCase() : '';
+  return m.indexOf('pdf') >= 0 || fn.endsWith('.pdf');
+}
+
+function isDemoExternalExcel_(externalFileEntry) {
+  var fn = (externalFileEntry && externalFileEntry.fileName) ? String(externalFileEntry.fileName).toLowerCase() : '';
+  var m = (externalFileEntry && externalFileEntry.mimeType) ? String(externalFileEntry.mimeType).toLowerCase() : '';
+  return fn.endsWith('.xlsx') || m.indexOf('spreadsheet') >= 0 || m.indexOf('excel') >= 0;
+}
+
+/**
+ * Renders markdown-like external PDF text into a Google Doc body (same rules as generatePdfFromServer).
+ */
+function fillTempDocBodyForExternalPdf_(body, content) {
+  function applyBold(element, text) {
+    if (!text) return;
+    var parts = text.split('**');
+    if (parts.length <= 1) return;
+
+    var newText = '';
+    var boldRanges = [];
+    var i;
+    for (i = 0; i < parts.length; i++) {
+      if (i % 2 === 1) {
+        var start = newText.length;
+        newText += parts[i];
+        boldRanges.push({ start: start, end: newText.length - 1 });
+      } else {
+        newText += parts[i];
+      }
+    }
+
+    element.setText(newText);
+    var textElement = element.editAsText();
+    for (i = 0; i < boldRanges.length; i++) {
+      var r = boldRanges[i];
+      textElement.setBold(r.start, r.end, true);
+    }
+  }
+
+  var lines = String(content || '').split(/\r?\n/);
+  var idx;
+  for (idx = 0; idx < lines.length; idx++) {
+    var line = lines[idx];
+    var trimmed = line.trim();
+    if (!trimmed) {
+      body.appendParagraph('');
+      continue;
+    }
+
+    if (trimmed.indexOf('# ') === 0) {
+      var p1 = body.appendParagraph(trimmed.substring(2));
+      p1.setHeading(DocumentApp.ParagraphHeading.HEADING1);
+      applyBold(p1, trimmed.substring(2));
+    } else if (trimmed.indexOf('## ') === 0) {
+      var p2 = body.appendParagraph(trimmed.substring(3));
+      p2.setHeading(DocumentApp.ParagraphHeading.HEADING2);
+      applyBold(p2, trimmed.substring(3));
+    } else if (trimmed.indexOf('### ') === 0) {
+      var p3 = body.appendParagraph(trimmed.substring(4));
+      p3.setHeading(DocumentApp.ParagraphHeading.HEADING3);
+      applyBold(p3, trimmed.substring(4));
+    } else if (trimmed.indexOf('- ') === 0) {
+      var li = body.appendListItem(trimmed.substring(2));
+      applyBold(li, trimmed.substring(2));
+    } else if (trimmed.indexOf('[CHART:') === 0) {
+      var match = trimmed.match(/\[CHART:\s*(BAR|PIE|LINE)?,?\s*([^,\]]+),\s*([^\]]+)\]/i);
+      if (match) {
+        var type = (match[1] || 'BAR').toUpperCase();
+        var chartTitle = match[2].trim();
+        var dataStr = match[3].trim();
+        var pairs = dataStr.split(',');
+        var dataTable = Charts.newDataTable();
+        dataTable.addColumn(Charts.ColumnType.STRING, 'Item');
+        dataTable.addColumn(Charts.ColumnType.NUMBER, 'Value');
+        var pi;
+        for (pi = 0; pi < pairs.length; pi++) {
+          var pair = pairs[pi].trim();
+          var eq = pair.split('=');
+          if (eq.length === 2) {
+            dataTable.addRow([eq[0].trim(), parseFloat(eq[1].trim()) || 0]);
+          }
+        }
+        var builder;
+        if (type === 'PIE') builder = Charts.newPieChart();
+        else if (type === 'LINE') builder = Charts.newLineChart();
+        else builder = Charts.newBarChart();
+
+        var chart = builder
+          .setDataTable(dataTable.build())
+          .setTitle(chartTitle)
+          .setDimensions(600, 300)
+          .build();
+
+        var imageBlob = chart.getAs('image/png');
+        body.appendImage(imageBlob);
+      } else {
+        var pF = body.appendParagraph(trimmed);
+        applyBold(pF, trimmed);
+      }
+    } else {
+      var pN = body.appendParagraph(trimmed);
+      applyBold(pN, trimmed);
+    }
+  }
+}
+
+/**
+ * Valid PDF bytes for Drive / desktop: render via Google Docs export, not raw text as application/pdf.
+ */
+function createDrivePdfBlobFromExternalFileContent_(content, fileName) {
+  var tempTitle = 'Temp PDF ' + Utilities.getUuid().replace(/-/g, '').substring(0, 12);
+  var doc = DocumentApp.create(tempTitle);
+  var body = doc.getBody();
+  fillTempDocBodyForExternalPdf_(body, content);
+  doc.saveAndClose();
+  var docId = doc.getId();
+  var driveFile = DriveApp.getFileById(docId);
+  var pdfBlob = driveFile.getAs(MimeType.PDF);
+  pdfBlob.setName(fileName || 'document.pdf');
+  driveFile.setTrashed(true);
+  return pdfBlob;
+}
+
+/**
  * Places Demo Guide Doc + attachment blobs under Demo/{dirName}; link-sharing on folder & doc.
  */
 function provisionDemoDriveKit_(dirName, storyboardData, markdownContent, externalFiles, docTitle) {
@@ -3720,6 +3870,16 @@ function provisionDemoDriveKit_(dirName, storyboardData, markdownContent, extern
       var ex = xf[xi];
       if (!ex || !ex.fileName) continue;
       var rawContent = ex.fileContent !== undefined && ex.fileContent !== null ? String(ex.fileContent) : '';
+      if (isDemoExternalPdf_(ex)) {
+        var pdfBlob = createDrivePdfBlobFromExternalFileContent_(rawContent, ex.fileName);
+        var pdfFile = agentFolder.createFile(pdfBlob);
+        pdfFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        continue;
+      }
+      if (isDemoExternalExcel_(ex)) {
+        provisionGoogleSheetAndXlsxFromTsvContent_(agentFolder, ex, rawContent);
+        continue;
+      }
       var blob = Utilities.newBlob(rawContent, mimeBlobTypeForDemoFile_(ex), ex.fileName);
       var f = agentFolder.createFile(blob);
       f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
@@ -3798,110 +3958,8 @@ function createGoogleDocFromMarkdown(markdownContent, docTitle, appendixPrompts)
  */
 function generatePdfFromServer(content, fileName) {
   try {
-    const doc = DocumentApp.create('Temp PDF Generation');
-    const body = doc.getBody();
-    
-    function applyBold(element, text) {
-      if (!text) return;
-      const parts = text.split('**');
-      if (parts.length <= 1) return;
-      
-      let newText = '';
-      const boldRanges = [];
-      
-      for (let i = 0; i < parts.length; i++) {
-        if (i % 2 === 1) { // It's a bold part
-          const start = newText.length;
-          newText += parts[i];
-          const end = newText.length - 1;
-          boldRanges.push({start, end});
-        } else {
-          newText += parts[i];
-        }
-      }
-      
-      element.setText(newText);
-      const textElement = element.editAsText();
-      boldRanges.forEach(range => {
-        textElement.setBold(range.start, range.end, true);
-      });
-    }
-    
-    const lines = content.split('\n');
-    lines.forEach(line => {
-      const trimmed = line.trim();
-      if (!trimmed) {
-        body.appendParagraph('');
-        return;
-      }
-      
-      if (trimmed.startsWith('# ')) {
-        const p = body.appendParagraph(trimmed.substring(2)).setHeading(DocumentApp.ParagraphHeading.HEADING1);
-        applyBold(p, trimmed.substring(2));
-      } else if (trimmed.startsWith('## ')) {
-        const p = body.appendParagraph(trimmed.substring(3)).setHeading(DocumentApp.ParagraphHeading.HEADING2);
-        applyBold(p, trimmed.substring(3));
-      } else if (trimmed.startsWith('### ')) {
-        const p = body.appendParagraph(trimmed.substring(4)).setHeading(DocumentApp.ParagraphHeading.HEADING3);
-        applyBold(p, trimmed.substring(4));
-      } else if (trimmed.startsWith('- ')) {
-        const li = body.appendListItem(trimmed.substring(2));
-        applyBold(li, trimmed.substring(2));
-      } else if (trimmed.startsWith('[CHART:')) {
-        const match = trimmed.match(/\[CHART:\s*(BAR|PIE|LINE)?,?\s*([^,\]]+),\s*([^\]]+)\]/i);
-        if (match) {
-          const type = (match[1] || 'BAR').toUpperCase();
-          const title = match[2].trim();
-          const dataStr = match[3].trim();
-          const pairs = dataStr.split(',').map(p => p.trim());
-          
-          const dataTable = Charts.newDataTable();
-          dataTable.addColumn(Charts.ColumnType.STRING, "Item");
-          dataTable.addColumn(Charts.ColumnType.NUMBER, "Value");
-          
-          pairs.forEach(p => {
-             const parts = p.split('=');
-             if (parts.length === 2) {
-               dataTable.addRow([parts[0].trim(), parseFloat(parts[1].trim()) || 0]);
-             }
-          });
-          
-          let builder;
-          if (type === 'PIE') {
-             builder = Charts.newPieChart();
-          } else if (type === 'LINE') {
-             builder = Charts.newLineChart();
-          } else {
-             builder = Charts.newBarChart();
-          }
-          
-          const chart = builder
-               .setDataTable(dataTable.build())
-               .setTitle(title)
-               .setDimensions(600, 300)
-               .build();
-          
-          const imageBlob = chart.getAs('image/png');
-          body.appendImage(imageBlob);
-        } else {
-           const p = body.appendParagraph(trimmed);
-           applyBold(p, trimmed);
-        }
-      } else {
-        const p = body.appendParagraph(trimmed);
-        applyBold(p, trimmed);
-      }
-    });
-    
-    doc.saveAndClose();
-    
-    const pdfBlob = doc.getAs('application/pdf');
-    pdfBlob.setName(fileName);
-    
-    const base64 = Utilities.base64Encode(pdfBlob.getBytes());
-    
-    DriveApp.getFileById(doc.getId()).setTrashed(true);
-    
+    var pdfBlob = createDrivePdfBlobFromExternalFileContent_(content, fileName);
+    var base64 = Utilities.base64Encode(pdfBlob.getBytes());
     return { success: true, base64: base64 };
   } catch (e) {
     console.error('PDF generation failed:', e.message);

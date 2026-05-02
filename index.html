@@ -189,12 +189,29 @@
       padding: 0.75rem 1rem;
       border-radius: 0.75rem;
       color: #94a3b8;
-      font-size: 0.75rem;
+      font-size: 0.875rem;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.05em;
       transition: all 0.2s;
       border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    /* Native selects: reserve space for chevron (no text / arrow overlap) */
+    select.awt-select {
+      appearance: none;
+      -webkit-appearance: none;
+      padding-right: 2.75rem;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.65rem center;
+      background-size: 1.15rem 1.15rem;
+      cursor: pointer;
+    }
+
+    [data-theme="light"] select.awt-select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23475569'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
     }
 
     .nav-item:hover {
@@ -220,7 +237,7 @@
       display: flex;
       gap: 8px;
       font-family: 'Courier New', Courier, monospace;
-      font-size: 10px;
+      font-size: 12px;
       line-height: 1.4;
       color: #94a3b8;
       margin-bottom: 2px;
@@ -251,7 +268,7 @@
     .log-tag {
       font-weight: bold;
       text-transform: uppercase;
-      font-size: 8px;
+      font-size: 11px;
       border-radius: 3px;
       padding: 1px 4px;
     }
@@ -285,9 +302,9 @@
       text-align: left;
       padding: 10px 14px;
       border-radius: 12px;
-      font-size: 10px;
-      line-height: 1.4;
-      width: 200px;
+      font-size: 12px;
+      line-height: 1.45;
+      width: 220px;
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
       border: 1px solid rgba(255, 255, 255, 0.1);
       z-index: 50;
@@ -439,7 +456,7 @@
       border: 1px solid rgba(14, 165, 233, 0.3);
       border-radius: 8px;
       color: white;
-      font-size: 10px;
+      font-size: 12px;
       pointer-events: none;
       z-index: 100;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
@@ -461,7 +478,7 @@
     .tab-btn {
       position: relative;
       padding: 0.75rem 0;
-      font-size: 0.65rem;
+      font-size: 0.75rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.05em;
@@ -722,6 +739,62 @@
     [data-theme="light"] .text-theme-adaptive-desc {
       color: #334155; /* slate-700 — body / summary on light background */
     }
+
+    /* ---------- “How it works” / #architectureContent — light mode ---------- */
+    [data-theme="light"] #architectureContent code,
+    [data-theme="light"] #architectureContent .text-sky-300\/90 {
+      color: #0369a1 !important;
+    }
+
+    [data-theme="light"] #architectureContent b.text-slate-200,
+    [data-theme="light"] #architectureContent .text-slate-200 {
+      color: #0f172a !important;
+    }
+
+    [data-theme="light"] #architectureContent .from-slate-900\/80.to-slate-950\/80 {
+      background-image: linear-gradient(to bottom right, rgb(248 250 252 / 0.98), rgb(241 245 249 / 1)) !important;
+      border-color: rgba(15, 23, 42, 0.08) !important;
+    }
+
+    /* Inline SVG diagram: flip label fills from “light ink” to dark ink on pale panel */
+    [data-theme="light"] #archSvg text[fill="#f1f5f9"] {
+      fill: #0f172a !important;
+    }
+
+    [data-theme="light"] #archSvg text[fill="#f1f5f9"][fill-opacity="0.5"] {
+      fill: #475569 !important;
+      fill-opacity: 1 !important;
+    }
+
+    [data-theme="light"] #archSvg text[fill="#94a3b8"],
+    [data-theme="light"] #archSvg text[fill="#64748b"] {
+      fill: #475569 !important;
+    }
+
+    [data-theme="light"] #archSvg path[stroke="#f1f5f9"] {
+      stroke: #64748b !important;
+    }
+
+    /* setup.sh pill stays dark; keep label readable */
+    [data-theme="light"] #archSvg text[fill="#e2e8f0"] {
+      fill: #f8fafc !important;
+    }
+
+    /* Diagram boxes: faint white fills disappear on light panel — use slate tints */
+    [data-theme="light"] #archSvg rect[fill="white"][fill-opacity="0.06"] {
+      fill: #e2e8f0 !important;
+      fill-opacity: 0.92 !important;
+    }
+
+    [data-theme="light"] #archSvg rect[fill="white"][fill-opacity="0.05"] {
+      fill: #f1f5f9 !important;
+      fill-opacity: 1 !important;
+    }
+
+    [data-theme="light"] #archSvg rect[fill="white"][fill-opacity="0.03"] {
+      fill: #f8fafc !important;
+      stroke: rgba(15, 23, 42, 0.12) !important;
+    }
   </style>
 </head>
 
@@ -746,10 +819,10 @@
 
     <!-- Interactive Navigation Sidebar -->
     <aside id="leftSidebar"
-      class="w-64 my-6 hidden lg:flex flex-col glass rounded-3xl overflow-hidden shadow-2xl sidebar-transition z-20">
+      class="w-[min(22rem,100%)] min-w-[20rem] shrink-0 my-6 hidden lg:flex flex-col glass rounded-3xl overflow-hidden shadow-2xl sidebar-transition z-20">
       <div class="p-6 h-full flex flex-col overflow-y-auto no-scrollbar">
         <div class="flex items-center justify-between mb-6 px-3 gap-2">
-          <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Navigation</h3>
+          <h3 class="text-[15px] font-bold text-gray-500 uppercase tracking-widest">Navigation</h3>
           <div class="flex items-center gap-1 shrink-0">
             <button type="button" id="themeToggleBtn" onclick="toggleAwtTheme()"
               class="p-2 rounded-xl border border-white/10 text-gray-400 hover:text-sky-400 transition-colors"
@@ -794,56 +867,30 @@
           </a>
 
           <div class="px-3 mt-8 mb-4">
-            <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Support</h3>
+            <h3 class="text-[15px] font-bold text-gray-500 uppercase tracking-widest">Support</h3>
           </div>
           <button onclick="openOnboarding()" class="nav-item w-full text-left">
             <div class="nav-dot"></div>
-            About this toolkit
+            About
           </button>
           <a href="https://github.com/samuelfeng510/AWT-Demo-Engine-V2/blob/main/README.md" target="_blank"
             rel="noopener noreferrer"
-            class="nav-item w-full text-left flex items-center">
+            class="nav-item w-full text-left">
             <div class="nav-dot"></div>
-            <svg class="w-3.5 h-3.5 mr-1.5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
-              </path>
-            </svg>
             Documentation
           </a>
 
         </div>
 
-        <!-- Sidebar Footer: Author, Version & Update -->
-        <div class="pt-6 mt-auto border-t border-white/5 space-y-4">
+        <!-- Sidebar footer: author credit -->
+        <div class="pt-6 mt-auto border-t border-white/5">
           <div class="px-3" role="contentinfo" aria-label="Developer credit">
-            <p class="text-[8px] text-gray-500 leading-relaxed">
+            <p class="text-[14px] text-gray-500 leading-relaxed">
               <span class="text-gray-300 font-medium">Workspace APAC Team</span><br>
-              <a href="https://github.com/samuelfeng510/AWT-Demo-Engine-V2" target="_blank" rel="noopener noreferrer"
-                class="text-sky-500/90 hover:text-sky-400 underline decoration-sky-500/30 underline-offset-2 font-medium">Source:
-                AWT-Demo-Engine-V2</a><br>
               <span class="text-gray-500">Fork lineage: </span><a
                 href="https://github.com/ryotat7/ge-demo-generator" target="_blank" rel="noopener noreferrer"
                 class="text-sky-500/90 hover:text-sky-400 underline decoration-sky-500/30 underline-offset-2">Ryota Tokodai&rsquo;s GE Demo Generator</a>
             </p>
-          </div>
-
-          <div class="px-3 py-3 bg-white/5 rounded-2xl border border-white/5">
-            <div class="flex items-center justify-between">
-              <span class="text-[10px] font-medium text-gray-500 font-mono italic">
-                <?= appVersion ?>
-              </span>
-              <button onclick="openUpdateLog()"
-                class="group flex items-center gap-1.5 text-[9px] font-bold text-gray-400 hover:text-sky-400 transition-colors uppercase tracking-widest">
-                <span>What's New</span>
-                <span class="relative flex h-1.5 w-1.5">
-                  <span
-                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
-                  <span
-                    class="relative inline-flex rounded-full h-1.5 w-1.5 bg-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.8)]"></span>
-                </span>
-              </button>
-            </div>
           </div>
         </div>
       </div>
@@ -859,7 +906,7 @@
         <header class="mb-10 text-center lg:text-left relative">
 
           <div
-            class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 text-xs font-medium mb-4">
+            class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 text-sm font-medium mb-4">
             <span class="relative flex h-2 w-2">
               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
               <span class="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span>
@@ -891,7 +938,7 @@
             <div class="p-6 lg:p-8">
               <div class="flex flex-col gap-8">
                 <div>
-                  <h3 class="text-xs font-bold text-sky-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <h3 class="text-sm font-bold text-sky-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M13 10V3L4 14h7v7l9-11h-7z">
@@ -899,7 +946,7 @@
                     </svg>
                     Generator: planning &amp; Drive kit
                   </h3>
-                  <p class="text-[13px] text-gray-300 leading-relaxed mb-4">
+                  <p class="text-[15px] text-gray-300 leading-relaxed mb-4">
                     The backend (<b>Apps Script</b>) calls <b>Vertex AI</b> with your goal and dimension choices, then
                     <b>validates</b> generated rows, assembles a <b>setup.sh</b>, and—when narration exists—<b>creates a
                       Drive “demo” folder</b> (Google Doc from Markdown, synthetic <b>externalFiles</b> as blobs,
@@ -911,19 +958,19 @@
                       class="text-sky-300/90">Code.gs</code>.
                   </p>
                   <ul class="space-y-3">
-                    <li class="text-[11px] text-gray-300 flex items-start gap-2">
+                    <li class="text-[14px] text-gray-300 flex items-start gap-2">
                       <span class="text-sky-400 mt-0.5">•</span>
                       <span><b>Demo length &amp; archetype</b> shape prompts and outputs: <b>Short / Medium / Long</b>
                         and <b>triage &amp; response</b>, <b>data to insight</b>, or <b>complex orchestration</b>.</span>
                     </li>
-                    <li class="text-[11px] text-gray-300 flex items-start gap-2">
+                    <li class="text-[14px] text-gray-300 flex items-start gap-2">
                       <span class="text-sky-400 mt-0.5">•</span>
                       <span><b>Workspace (optional):</b> With <b>Turn on Google Workspace functions with the agent</b>,
                         the plan includes <b>workspaceSeedData</b> embedded into <code
                           class="text-sky-300/90">setup.sh</code>. Off keeps the story to <b>BigQuery + MCP + Drive
                           files</b>.</span>
                     </li>
-                    <li class="text-[11px] text-gray-300 flex items-start gap-2">
+                    <li class="text-[14px] text-gray-300 flex items-start gap-2">
                       <span class="text-sky-400 mt-0.5">•</span>
                       <span><b>Artifacts:</b> Downloadable <code class="text-sky-300/90">setup.sh</code>,
                         <code class="text-sky-300/90">DEMO_GUIDE_DOC_URL</code> /
@@ -935,9 +982,9 @@
 
                 <!-- Section 2: Architecture diagram — generator vs runtime -->
                 <div class="pt-6">
-                  <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Architecture (matches Code.gs)
+                  <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">Architecture (matches Code.gs)
                   </h3>
-                  <p class="text-[11px] text-gray-500 mb-4 leading-relaxed max-w-3xl">
+                  <p class="text-[14px] text-gray-500 mb-4 leading-relaxed max-w-3xl">
                     <b>Top:</b> what happens when you click generate (hosted Apps Script + Vertex + Drive kit).
                     <b>Bottom:</b> what <code class="text-gray-400">setup.sh</code> prepares in <b>your</b> project—local
                     <b>ADK</b> agent with hosted <b>MCP</b> toolsets for BigQuery and Maps (and optional Workspace seeding
@@ -953,55 +1000,55 @@
                         aria-label="Two-part diagram: Generator pipeline then runtime ADK and MCP">
                         <title>Generator versus runtime architecture</title>
                         <!-- 1 · Generator row -->
-                        <text x="22" y="18" fill="#94a3b8" font-family="Inter, system-ui, sans-serif" font-size="11"
+                        <text x="22" y="18" fill="#94a3b8" font-family="Inter, system-ui, sans-serif" font-size="14"
                           font-weight="700">1 · GENERATOR (this web app)</text>
                         <rect x="18" y="30" width="78" height="38" rx="9" fill="#0ea5e9" fill-opacity="0.12"
                           stroke="#0ea5e9" stroke-width="1" />
                         <text x="57" y="53" text-anchor="middle" fill="#f1f5f9" font-family="Inter, system-ui, sans-serif"
-                          font-size="10" font-weight="700">Browser</text>
+                          font-size="13" font-weight="700">Browser</text>
                         <path d="M98 49 H108 M104 45 L108 49 L104 53" stroke="#64748b" stroke-width="1.2" fill="none" />
                         <rect x="114" y="28" width="92" height="42" rx="9" fill="white" fill-opacity="0.06"
                           stroke="white" stroke-opacity="0.15" />
-                        <text x="160" y="48" text-anchor="middle" fill="#f1f5f9" font-size="9" font-weight="700">Apps
+                        <text x="160" y="48" text-anchor="middle" fill="#f1f5f9" font-size="12" font-weight="700">Apps
                           Script</text>
-                        <text x="160" y="60" text-anchor="middle" fill="#94a3b8" font-size="8">GAS backend</text>
+                        <text x="160" y="60" text-anchor="middle" fill="#94a3b8" font-size="11">GAS backend</text>
                         <path d="M208 49 H218 M214 45 L218 49 L214 53" stroke="#64748b" stroke-width="1.2" fill="none" />
                         <rect x="224" y="28" width="108" height="42" rx="9" fill="white" fill-opacity="0.06"
                           stroke="#38bdf8" stroke-opacity="0.45" />
-                        <text x="278" y="48" text-anchor="middle" fill="#f1f5f9" font-size="9" font-weight="700">Vertex AI
+                        <text x="278" y="48" text-anchor="middle" fill="#f1f5f9" font-size="12" font-weight="700">Vertex AI
                         </text>
-                        <text x="278" y="60" text-anchor="middle" fill="#94a3b8" font-size="8">plan &amp; JSON</text>
+                        <text x="278" y="60" text-anchor="middle" fill="#94a3b8" font-size="11">plan &amp; JSON</text>
                         <path d="M336 49 H346 M342 45 L346 49 L342 53" stroke="#64748b" stroke-width="1.2" fill="none" />
                         <rect x="352" y="24" width="132" height="50" rx="9" fill="white" fill-opacity="0.06"
                           stroke="#34d399" stroke-opacity="0.45" />
-                        <text x="418" y="44" text-anchor="middle" fill="#f1f5f9" font-size="9" font-weight="700">Google
+                        <text x="418" y="44" text-anchor="middle" fill="#f1f5f9" font-size="12" font-weight="700">Google
                           Drive</text>
-                        <text x="418" y="56" text-anchor="middle" fill="#94a3b8" font-size="8">Demo / Doc + files</text>
-                        <text x="418" y="68" text-anchor="middle" fill="#94a3b8" font-size="8">share link</text>
+                        <text x="418" y="56" text-anchor="middle" fill="#94a3b8" font-size="11">Demo / Doc + files</text>
+                        <text x="418" y="68" text-anchor="middle" fill="#94a3b8" font-size="11">share link</text>
                         <path d="M418 74 V86" stroke="#475569" stroke-width="1" />
                         <rect x="332" y="90" width="172" height="28" rx="14" fill="#1e293b" stroke="#64748b"
                           stroke-width="1" />
-                        <text x="418" y="108" text-anchor="middle" fill="#e2e8f0" font-size="9" font-weight="700">→
+                        <text x="418" y="108" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="700">→
                           setup.sh + DEMO_* URLs</text>
-                        <text x="22" y="132" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="8">Rows
+                        <text x="22" y="132" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="11">Rows
                           validated · Markdown → Doc · externalFiles → blobs · optional workspaceSeedData</text>
                         <path d="M418 118 L418 138" stroke="#0ea5e9" stroke-width="1.2" stroke-dasharray="5 4"
                           opacity="0.7" />
-                        <text x="22" y="152" fill="#94a3b8" font-family="Inter, system-ui, sans-serif" font-size="11"
+                        <text x="22" y="152" fill="#94a3b8" font-family="Inter, system-ui, sans-serif" font-size="14"
                           font-weight="700">2 · RUNTIME (your GCP project after bash setup.sh)</text>
                         <g transform="translate(0, 158)">
                           <!-- Google Cloud Boundary -->
                           <rect x="230" y="40" width="400" height="260" rx="20" fill="white" fill-opacity="0.03"
                             stroke="white" stroke-opacity="0.1" stroke-width="1" stroke-dasharray="8 4" />
-                          <text x="245" y="65" fill="#f1f5f9" fill-opacity="0.5" font-family="Inter" font-size="12"
+                          <text x="245" y="65" fill="#f1f5f9" fill-opacity="0.5" font-family="Inter" font-size="14"
                             font-weight="700">Google Cloud</text>
 
                           <!-- Node: Agent Development Kit -->
                           <rect x="20" y="130" width="200" height="60" rx="12" fill="#0ea5e9" fill-opacity="0.1"
                             stroke="#0ea5e9" stroke-width="1" />
-                          <text x="85" y="158" fill="#f1f5f9" font-family="Inter" font-size="11" font-weight="700">Agent
+                          <text x="85" y="158" fill="#f1f5f9" font-family="Inter" font-size="14" font-weight="700">Agent
                             Development Kit</text>
-                          <text x="85" y="172" fill="#94a3b8" font-family="Inter" font-size="9">Local Agent</text>
+                          <text x="85" y="172" fill="#94a3b8" font-family="Inter" font-size="12">Local Agent</text>
                           <circle cx="50" cy="160" r="15" fill="white" fill-opacity="0.1" />
                           <path d="M45 155 Q50 150 55 155 M45 165 Q50 170 55 165" stroke="#f1f5f9" stroke-width="1" />
 
@@ -1029,37 +1076,37 @@
                           <!-- Node: Gemini -->
                           <rect x="290" y="70" width="150" height="60" rx="12" fill="white" fill-opacity="0.05"
                             stroke="white" stroke-opacity="0.2" />
-                          <text x="345" y="96" fill="#f1f5f9" font-family="Inter" font-size="11" font-weight="700">Gemini
+                          <text x="345" y="96" fill="#f1f5f9" font-family="Inter" font-size="14" font-weight="700">Gemini
                             model</text>
-                          <text x="345" y="112" fill="#94a3b8" font-family="Inter" font-size="9">ADK / setup.sh</text>
+                          <text x="345" y="112" fill="#94a3b8" font-family="Inter" font-size="12">ADK / setup.sh</text>
                           <path d="M310 90 L325 110 L310 110 L325 90 Z" fill="#38bdf8" fill-opacity="0.5" />
 
                           <!-- Node: MCP Server BigQuery -->
                           <rect x="290" y="140" width="150" height="60" rx="12" fill="#10b981" fill-opacity="0.1"
                             stroke="#10b981" stroke-width="1" />
-                          <text x="345" y="165" fill="#f1f5f9" font-family="Inter" font-size="10" font-weight="700">MCP
+                          <text x="345" y="165" fill="#f1f5f9" font-family="Inter" font-size="13" font-weight="700">MCP
                             Server</text>
-                          <text x="345" y="178" fill="#f1f5f9" font-family="Inter" font-size="10" font-weight="700">for
+                          <text x="345" y="178" fill="#f1f5f9" font-family="Inter" font-size="13" font-weight="700">for
                             BigQuery</text>
                           <circle cx="315" cy="170" r="12" fill="#10b981" fill-opacity="0.2" />
 
                           <!-- Node: MCP Server Maps -->
                           <rect x="290" y="220" width="180" height="60" rx="12" fill="#f59e0b" fill-opacity="0.1"
                             stroke="#f59e0b" stroke-width="1" />
-                          <text x="345" y="245" fill="#f1f5f9" font-family="Inter" font-size="10" font-weight="700">MCP
+                          <text x="345" y="245" fill="#f1f5f9" font-family="Inter" font-size="13" font-weight="700">MCP
                             Server for Maps</text>
-                          <text x="345" y="258" fill="#94a3b8" font-family="Inter" font-size="9">Grounding Lite</text>
+                          <text x="345" y="258" fill="#94a3b8" font-family="Inter" font-size="12">Grounding Lite</text>
 
                           <!-- Node: BigQuery Dataset -->
                           <rect x="490" y="130" width="130" height="60" rx="12" fill="white" fill-opacity="0.05"
                             stroke="white" stroke-opacity="0.1" />
-                          <text x="555" y="165" text-anchor="middle" fill="#f1f5f9" font-family="Inter" font-size="11"
+                          <text x="555" y="165" text-anchor="middle" fill="#f1f5f9" font-family="Inter" font-size="14"
                             font-weight="700">BigQuery Dataset</text>
 
                           <!-- Node: Maps APIs -->
                           <rect x="530" y="220" width="100" height="60" rx="12" fill="white" fill-opacity="0.05"
                             stroke="white" stroke-opacity="0.1" />
-                          <text x="580" y="255" text-anchor="middle" fill="#f1f5f9" font-family="Inter" font-size="10"
+                          <text x="580" y="255" text-anchor="middle" fill="#f1f5f9" font-family="Inter" font-size="13"
                             font-weight="700">Maps APIs</text>
                         </g>
                       </svg>
@@ -1072,15 +1119,15 @@
                   <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
                     <div
                       class="rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900/80 to-slate-950/80 p-6 shadow-xl">
-                      <p class="text-[10px] font-bold text-sky-400 uppercase tracking-widest mb-3">Source &amp; docs</p>
-                      <p class="text-[13px] text-gray-300 leading-relaxed mb-4">
+                      <p class="text-[15px] font-bold text-sky-400 uppercase tracking-widest mb-3">Source &amp; docs</p>
+                      <p class="text-[15px] text-gray-300 leading-relaxed mb-4">
                         Open source under <b class="text-slate-200">AWT Demo Engine V2</b>. Clone or star the repo; there are
                         <b>no API keys in source</b>—only Script Properties and user-run <code
                           class="text-sky-300/90">setup.sh</code> create credentials in your GCP project.
                       </p>
                       <a href="https://github.com/samuelfeng510/AWT-Demo-Engine-V2" target="_blank"
                         rel="noopener noreferrer"
-                        class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-sky-500/15 border border-sky-500/30 hover:bg-sky-500/25 text-[12px] font-bold text-sky-300 transition-all mb-3">
+                        class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-sky-500/15 border border-sky-500/30 hover:bg-sky-500/25 text-[14px] font-bold text-sky-300 transition-all mb-3">
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                           <path fill-rule="evenodd"
                             d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
@@ -1093,23 +1140,23 @@
                           </path>
                         </svg>
                       </a>
-                      <p class="text-[11px] text-gray-500 leading-relaxed">README lists Script Properties to configure for
+                      <p class="text-[14px] text-gray-500 leading-relaxed">README lists Script Properties to configure for
                         deployment—never commit service account JSON as files.</p>
                     </div>
                     <div>
-                      <h3 class="text-xs font-bold text-sky-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                      <h3 class="text-sm font-bold text-sky-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                         </svg>
                         References
                       </h3>
-                      <p class="text-[13px] text-gray-300 leading-relaxed mb-6">
+                      <p class="text-[15px] text-gray-300 leading-relaxed mb-6">
                         Pattern lineage: enterprise workflow layers on the <b>GE Demo Generator</b> + MCP reference apps.
                       </p>
                       <a href="https://github.com/samuelfeng510/AWT-Demo-Engine-V2/blob/main/README.md" target="_blank"
                         rel="noopener noreferrer"
-                        class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-[12px] font-bold text-sky-400 transition-all mb-3 w-full sm:w-auto justify-center">
+                        class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-[14px] font-bold text-sky-400 transition-all mb-3 w-full sm:w-auto justify-center">
                         <span>README (this project)</span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1118,7 +1165,7 @@
                         </svg>
                       </a>
                       <a href="https://github.com/ryotat7/ge-demo-generator" target="_blank" rel="noopener noreferrer"
-                        class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-[12px] font-bold text-sky-400 transition-all mb-3 w-full sm:w-auto justify-center">
+                        class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-[14px] font-bold text-sky-400 transition-all mb-3 w-full sm:w-auto justify-center">
                         <span>GE Demo Generator (upstream)</span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1128,7 +1175,7 @@
                       </a>
                       <a href="https://github.com/google/mcp/tree/main/examples/launchmybakery" target="_blank"
                         rel="noopener noreferrer"
-                        class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-[12px] font-bold text-sky-400 transition-all w-full sm:w-auto justify-center">
+                        class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-[14px] font-bold text-sky-400 transition-all w-full sm:w-auto justify-center">
                         <span>MCP Launch My Bakery example</span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1150,7 +1197,7 @@
               class="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-500 text-white font-bold shadow-lg shadow-sky-500/40">1</span>
             <div>
               <h2 class="step-title-theme text-xl font-bold uppercase tracking-tight">Step 1: Define Business Challenge</h2>
-              <p class="text-[11px] text-gray-500">Select a template or describe your customer's problem</p>
+              <p class="text-[14px] text-gray-500">Select a template or describe your customer's problem</p>
             </div>
           </div>
 
@@ -1173,9 +1220,9 @@
                   </svg>
                 </div>
                 <h3 class="text-xl font-bold text-theme-adaptive mb-2">Pick from Gallery</h3>
-                <p class="text-[12px] text-gray-400 leading-relaxed">Choose from pre-built scenarios across 6 industries
+                <p class="text-[14px] text-gray-400 leading-relaxed">Choose from pre-built scenarios across 6 industries
                   and job functions.</p>
-                <div class="mt-6 flex items-center gap-2 text-sky-400 text-[10px] font-bold uppercase tracking-widest">
+                <div class="mt-6 flex items-center gap-2 text-sky-400 text-[15px] font-bold uppercase tracking-widest">
                   <span>Start with Template</span>
                   <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1202,10 +1249,10 @@
                   </svg>
                 </div>
                 <h3 class="text-xl font-bold text-theme-adaptive mb-2">Start from Scratch</h3>
-                <p class="text-[12px] text-gray-400 leading-relaxed">Describe your own unique business challenge and
+                <p class="text-[14px] text-gray-400 leading-relaxed">Describe your own unique business challenge and
                   requirements directly.</p>
                 <div
-                  class="mt-6 flex items-center gap-2 text-emerald-400 text-[10px] font-bold uppercase tracking-widest">
+                  class="mt-6 flex items-center gap-2 text-emerald-400 text-[15px] font-bold uppercase tracking-widest">
                   <span>Manual Input</span>
                   <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1220,71 +1267,73 @@
           <div id="demoDimensionsPanel"
             class="mb-10 p-6 rounded-3xl bg-white/[0.03] border border-white/10 shadow-inner backdrop-blur-sm">
             <div class="grid grid-cols-1 xl:grid-cols-12 gap-8 items-stretch">
-              <div class="xl:col-span-5 flex flex-col gap-8">
+              <div class="xl:col-span-4 flex flex-col gap-8">
                 <div>
-                  <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-                    <span class="h-px flex-1 max-w-[2rem] bg-gradient-to-r from-sky-500/40 to-transparent"></span>
-                    Demo length
+                  <p class="text-[14px] font-bold text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-3">
+                    <span class="h-px flex-1 min-w-0 bg-gradient-to-r from-transparent via-sky-500/35 to-sky-500/40"></span>
+                    <span class="shrink-0 text-center">Demo length</span>
+                    <span class="h-px flex-1 min-w-0 bg-gradient-to-l from-transparent via-sky-500/35 to-sky-500/40"></span>
                   </p>
-                  <p class="text-[11px] text-gray-400 mb-3 leading-snug">T-shirt sizing for how deep the scripted demo
+                  <p class="text-[14px] text-gray-400 mb-3 leading-snug">T-shirt sizing for how deep the scripted demo
                     should run (5–10 min, 15–20 min, or 30+ min).</p>
                   <input type="hidden" id="demoLength" value="medium">
-                  <div id="demoLengthGroup" class="inline-flex flex-wrap gap-1.5 p-1 rounded-2xl bg-black/25 border border-white/10 shadow-inner"
+                  <div id="demoLengthGroup" class="flex flex-col gap-1.5 w-full p-1 rounded-2xl bg-black/25 border border-white/10 shadow-inner"
                     role="group" aria-label="Demo length">
                     <button type="button" onclick="setDemoDimension('demoLength','short', this)"
-                      class="demo-length-btn px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all border border-transparent text-gray-400 hover:text-sky-300 hover:bg-sky-500/10">
+                      class="demo-length-btn w-full px-4 py-2 rounded-xl text-[15px] font-bold uppercase tracking-wider transition-all border border-transparent text-gray-400 hover:text-sky-300 hover:bg-sky-500/10">
                       Short</button>
                     <button type="button" onclick="setDemoDimension('demoLength','medium', this)"
-                      class="demo-length-btn px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all border border-transparent text-gray-400 hover:text-sky-300 hover:bg-sky-500/10 ring-2 ring-sky-500/50 bg-sky-500/15 text-sky-200 border-sky-500/30 shadow-[0_0_20px_rgba(14,165,233,0.15)]">
+                      class="demo-length-btn w-full px-4 py-2 rounded-xl text-[15px] font-bold uppercase tracking-wider transition-all border border-transparent text-gray-400 hover:text-sky-300 hover:bg-sky-500/10 ring-2 ring-sky-500/50 bg-sky-500/15 text-sky-200 border-sky-500/30 shadow-[0_0_20px_rgba(14,165,233,0.15)]">
                       Medium</button>
                     <button type="button" onclick="setDemoDimension('demoLength','long', this)"
-                      class="demo-length-btn px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all border border-transparent text-gray-400 hover:text-sky-300 hover:bg-sky-500/10">
+                      class="demo-length-btn w-full px-4 py-2 rounded-xl text-[15px] font-bold uppercase tracking-wider transition-all border border-transparent text-gray-400 hover:text-sky-300 hover:bg-sky-500/10">
                       Long</button>
                   </div>
                 </div>
                 <div>
-                  <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-                    <span class="h-px flex-1 max-w-[2rem] bg-gradient-to-r from-emerald-500/40 to-transparent"></span>
-                    Workflow archetype
+                  <p class="text-[14px] font-bold text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-3">
+                    <span class="h-px flex-1 min-w-0 bg-gradient-to-r from-transparent via-emerald-500/35 to-emerald-500/40"></span>
+                    <span class="shrink-0 text-center">Workflow archetype</span>
+                    <span class="h-px flex-1 min-w-0 bg-gradient-to-l from-transparent via-emerald-500/35 to-emerald-500/40"></span>
                   </p>
-                  <p class="text-[11px] text-gray-400 mb-3 leading-snug">Shapes multi-service Workspace patterns: triage,
+                  <p class="text-[14px] text-gray-400 mb-3 leading-snug">Shapes multi-service Workspace patterns: triage,
                     analytics narrative, or end-to-end orchestration.</p>
                   <input type="hidden" id="workflowArchetype" value="triage_response">
                   <div id="workflowArchetypeGroup" class="flex flex-col sm:flex-row flex-wrap gap-1.5 p-1 rounded-2xl bg-black/25 border border-white/10 shadow-inner"
                     role="group" aria-label="Workflow archetype">
                     <button type="button"
                       onclick="setDemoDimension('workflowArchetype','triage_response', this)"
-                      class="workflow-arch-btn flex-1 min-w-[8rem] px-3 py-2.5 rounded-xl text-[9px] font-bold uppercase tracking-wider transition-all border border-transparent text-gray-400 hover:text-emerald-300 hover:bg-emerald-500/10 ring-2 ring-emerald-500/50 bg-emerald-500/15 text-emerald-100 border-emerald-500/30 shadow-[0_0_18px_rgba(16,185,129,0.12)]">
+                      class="workflow-arch-btn flex-1 min-w-[8rem] px-3 py-2.5 rounded-xl text-[14px] font-bold uppercase tracking-wider transition-all border border-transparent text-gray-400 hover:text-emerald-300 hover:bg-emerald-500/10 ring-2 ring-emerald-500/50 bg-emerald-500/15 text-emerald-100 border-emerald-500/30 shadow-[0_0_18px_rgba(16,185,129,0.12)]">
                       Triage &amp; Response</button>
                     <button type="button" onclick="setDemoDimension('workflowArchetype','data_to_insight', this)"
-                      class="workflow-arch-btn flex-1 min-w-[8rem] px-3 py-2.5 rounded-xl text-[9px] font-bold uppercase tracking-wider transition-all border border-transparent text-gray-400 hover:text-emerald-300 hover:bg-emerald-500/10">
+                      class="workflow-arch-btn flex-1 min-w-[8rem] px-3 py-2.5 rounded-xl text-[14px] font-bold uppercase tracking-wider transition-all border border-transparent text-gray-400 hover:text-emerald-300 hover:bg-emerald-500/10">
                       Data to Insight</button>
                     <button type="button"
                       onclick="setDemoDimension('workflowArchetype','complex_orchestration', this)"
-                      class="workflow-arch-btn flex-1 min-w-[8rem] px-3 py-2.5 rounded-xl text-[9px] font-bold uppercase tracking-wider transition-all border border-transparent text-gray-400 hover:text-emerald-300 hover:bg-emerald-500/10">
+                      class="workflow-arch-btn flex-1 min-w-[8rem] px-3 py-2.5 rounded-xl text-[14px] font-bold uppercase tracking-wider transition-all border border-transparent text-gray-400 hover:text-emerald-300 hover:bg-emerald-500/10">
                       Complex Orchestration</button>
                   </div>
                 </div>
               </div>
-              <div class="xl:col-span-7">
+              <div class="xl:col-span-8">
                 <div id="demoDimensionPreviewCard"
-                  class="h-full min-h-[14rem] rounded-2xl border border-white/10 bg-gradient-to-br from-sky-500/[0.07] via-black/20 to-emerald-500/[0.07] p-5 flex flex-col shadow-inner ring-1 ring-white/5">
-                  <p class="text-[9px] font-bold text-theme-adaptive uppercase tracking-widest mb-2">What you are configuring</p>
+                  class="h-full min-h-[16rem] rounded-2xl border border-white/10 bg-gradient-to-br from-sky-500/[0.07] via-black/20 to-emerald-500/[0.07] p-6 lg:p-8 flex flex-col shadow-inner ring-1 ring-white/5">
+                  <p class="text-[14px] font-bold text-theme-adaptive uppercase tracking-widest mb-2">What you are configuring</p>
                   <h3 id="demoPreviewHeadline" class="text-sm font-bold text-theme-adaptive leading-snug mb-1">—</h3>
-                  <p id="demoPreviewArcheSummary" class="text-[11px] text-theme-adaptive-desc leading-relaxed mb-4">—</p>
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
+                  <p id="demoPreviewArcheSummary" class="text-[14px] text-theme-adaptive-desc leading-relaxed mb-4">—</p>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 flex-1">
                     <div id="demoPreviewGcpCol"
-                      class="rounded-xl bg-black/35 border border-sky-500/15 p-3 sm:col-span-2">
-                      <p class="text-[9px] font-bold text-sky-400 uppercase tracking-widest mb-2">Cloud &amp; data plane</p>
-                      <ul id="demoPreviewGcpList" class="text-[10px] text-gray-300 space-y-1.5 list-none pl-0"></ul>
+                      class="rounded-xl bg-black/35 border border-sky-500/15 p-4 sm:col-span-2">
+                      <p class="text-[14px] font-bold text-sky-400 uppercase tracking-widest mb-2">Cloud &amp; data plane</p>
+                      <ul id="demoPreviewGcpList" class="text-[15px] text-gray-300 space-y-1.5 list-none pl-0"></ul>
                     </div>
                     <div id="demoPreviewWorkspaceCol"
-                      class="hidden rounded-xl bg-black/35 border border-emerald-500/15 p-3">
-                      <p class="text-[9px] font-bold text-emerald-400 uppercase tracking-widest mb-2">Workspace &amp; agent tools</p>
-                      <ul id="demoPreviewWorkspaceList" class="text-[10px] text-gray-300 space-y-1.5 list-none pl-0"></ul>
+                      class="hidden rounded-xl bg-black/35 border border-emerald-500/15 p-4">
+                      <p class="text-[14px] font-bold text-emerald-400 uppercase tracking-widest mb-2">WORKSPACE &amp; AGENT</p>
+                      <ul id="demoPreviewWorkspaceList" class="text-[15px] text-gray-300 space-y-1.5 list-none pl-0"></ul>
                     </div>
                   </div>
-                  <p id="demoPreviewLengthNote" class="text-[9px] text-gray-500 mt-3 pt-3 border-t border-white/5 leading-relaxed">—</p>
+                  <p id="demoPreviewLengthNote" class="text-[14px] text-gray-500 mt-3 pt-3 border-t border-white/5 leading-relaxed">—</p>
                 </div>
               </div>
             </div>
@@ -1293,7 +1342,7 @@
           <!-- Container for Template Hub -->
           <div id="templateContainer" class="hidden opacity-0 transition-all duration-500 transform translate-y-4">
             <button onclick="switchMethod()"
-              class="mb-6 flex items-center gap-2 text-[10px] font-bold text-gray-500 hover:text-sky-400 transition-colors uppercase tracking-widest group">
+              class="mb-6 flex items-center gap-2 text-[15px] font-bold text-gray-500 hover:text-sky-400 transition-colors uppercase tracking-widest group">
               <svg class="w-3 h-3 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor"
                 viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -1302,7 +1351,7 @@
             </button>
             <div class="mb-8 p-6 bg-white/5 rounded-2xl border border-white/10 shadow-inner">
               <div class="flex items-center gap-4 mb-4">
-                <label class="text-[10px] font-bold text-sky-400 uppercase tracking-widest flex items-center gap-2">
+                <label class="text-[15px] font-bold text-sky-400 uppercase tracking-widest flex items-center gap-2">
                   <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                       d="M13 10V3L4 14h7v7l9-11h-7z">
@@ -1317,7 +1366,7 @@
                     </path>
                   </svg>
                   <select id="langSelector" onchange="updateSamples()"
-                    class="bg-transparent text-[9px] outline-none text-sky-400/80 font-bold px-1 py-0.5 cursor-pointer hover:text-sky-300 transition-colors">
+                    class="bg-transparent text-[14px] outline-none text-sky-400/80 font-bold px-1 py-0.5 cursor-pointer hover:text-sky-300 transition-colors">
                     <option value="en">English</option>
                     <option value="ja">日本語</option>
                   </select>
@@ -1326,7 +1375,7 @@
 
               <!-- Industry Filter -->
               <div class="mb-5">
-                <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-3">1. Select Industry</p>
+                <p class="text-[14px] font-bold text-gray-500 uppercase tracking-widest mb-3">1. Select Industry</p>
                 <div id="industryFilters" class="flex flex-wrap gap-2">
                   <!-- Industry filters will be injected here -->
                 </div>
@@ -1334,7 +1383,7 @@
 
               <!-- Job Function Filter -->
               <div class="mb-6">
-                <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-3">2. Filter by Job Function
+                <p class="text-[14px] font-bold text-gray-500 uppercase tracking-widest mb-3">2. Filter by Job Function
                 </p>
                 <div id="jobFunctionFilters" class="flex flex-wrap gap-2">
                   <!-- Job function filters will be injected here -->
@@ -1342,7 +1391,7 @@
               </div>
 
               <div class="border-t border-white/5 pt-6 mt-6">
-                <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-4">3. Select a Template</p>
+                <p class="text-[14px] font-bold text-gray-500 uppercase tracking-widest mb-4">3. Select a Template</p>
                 <div id="templateGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <!-- Templates will be injected here -->
                 </div>
@@ -1353,7 +1402,7 @@
           <!-- Container for Manual Input -->
           <div id="manualContainer" class="hidden opacity-0 transition-all duration-500 transform translate-y-4">
             <button onclick="switchMethod()"
-              class="mb-6 flex items-center gap-2 text-[10px] font-bold text-gray-500 hover:text-emerald-400 transition-colors uppercase tracking-widest group">
+              class="mb-6 flex items-center gap-2 text-[15px] font-bold text-gray-500 hover:text-emerald-400 transition-colors uppercase tracking-widest group">
               <svg class="w-3 h-3 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor"
                 viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -1362,10 +1411,10 @@
             </button>
             <div class="mb-6">
               <div class="flex items-center justify-between mb-3 ml-1">
-                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest">Detail the
+                <label class="block text-[15px] font-bold text-gray-500 uppercase tracking-widest">Detail the
                   Business Scenario</label>
                 <button onclick="resetForm()"
-                  class="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-gray-700/30 hover:bg-gray-600/50 border border-gray-700/50 text-gray-400 hover:text-white text-[9px] font-bold transition-all">
+                  class="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-gray-700/30 hover:bg-gray-600/50 border border-gray-700/50 text-gray-400 hover:text-white text-[14px] font-bold transition-all">
                   <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
@@ -1382,7 +1431,7 @@
 
           <!-- Step 1: Google Workspace Integration -->
           <div class="mt-8 pt-2">
-            <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-4">1. Integration Option</p>
+            <p class="text-[14px] font-bold text-gray-500 uppercase tracking-widest mb-4">1. Integration Option</p>
             <div class="flex items-center justify-between pt-1">
               <label class="flex items-center gap-3 cursor-pointer group">
                 <div class="relative">
@@ -1393,12 +1442,12 @@
                   </div>
                 </div>
                 <span
-                  class="text-[10px] font-bold text-gray-400 uppercase tracking-widest group-hover:text-gray-300 transition-colors">Turn
+                  class="text-[15px] font-bold text-gray-400 uppercase tracking-widest group-hover:text-gray-300 transition-colors">Turn
                   on
                   Google Workspace functions with the agent</span>
               </label>
             </div>
-            <p class="text-[9px] text-gray-500 mt-2 ml-13 italic">When <strong
+            <p class="text-[14px] text-gray-500 mt-2 ml-13 italic">When <strong
                 class="text-gray-400 font-semibold">on</strong>, the agent will be able to read and write <strong
                 class="text-gray-400 font-semibold">Docs, Sheets, Drive, and Gmail</strong> as part of the demo
               workflow. Leave <strong class="text-gray-400 font-semibold">off</strong> if you only need data analysis
@@ -1408,7 +1457,7 @@
           <!-- Advanced Settings Toggle -->
           <div class="mt-8 pt-2">
             <button onclick="toggleAdvancedSettings()" type="button"
-              class="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest hover:text-gray-300 transition-colors group">
+              class="flex items-center gap-2 text-[15px] font-bold text-gray-500 uppercase tracking-widest hover:text-gray-300 transition-colors group">
               <svg class="w-3.5 h-3.5 text-gray-500 group-hover:text-gray-300" fill="none" stroke="currentColor"
                 viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1427,29 +1476,29 @@
 
             <div id="advancedSettingsContent" class="hidden mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
-                <label class="block text-[10px] text-gray-500 mb-2 font-bold uppercase tracking-widest">Synthesis
+                <label class="block text-[15px] text-gray-500 mb-2 font-bold uppercase tracking-widest">Synthesis
                   Volume</label>
                 <select id="rowCount"
-                  class="w-full bg-gray-800/50 border border-gray-600 rounded-xl p-3 text-xs text-gray-200">
+                  class="awt-select w-full bg-gray-800/50 border border-gray-600 rounded-xl py-3 pl-4 text-sm text-gray-200">
                   <option value="50">Compact (50 rows)</option>
                   <option value="100" selected>Standard (100 rows) [Recommended]</option>
                   <option value="150">Deep (150 rows)</option>
                 </select>
-                <p class="text-[9px] text-gray-500 mt-2 italic">* Target rows per table. Note: The generated row count
+                <p class="text-[14px] text-gray-500 mt-2 italic">* Target rows per table. Note: The generated row count
                   may not match this number precisely as the system now prioritizes data quality and schema realism.</p>
               </div>
               <div>
-                <label class="block text-[10px] text-gray-500 mb-2 font-bold uppercase tracking-widest">Dataset
+                <label class="block text-[15px] text-gray-500 mb-2 font-bold uppercase tracking-widest">Dataset
                   Complexity</label>
                 <select id="tableCount"
-                  class="w-full bg-gray-800/50 border border-gray-600 rounded-xl p-3 text-xs text-gray-200">
+                  class="awt-select w-full bg-gray-800/50 border border-gray-600 rounded-xl py-3 pl-4 text-sm text-gray-200">
                   <option value="1">Minimal (1 Table)</option>
                   <option value="2">Standard (2 Tables)</option>
                   <option value="3">Advanced (3 Tables)</option>
                   <option value="4">Complex (4 Tables)</option>
                   <option value="5" selected>Enterprise (5 Tables) [Recommended]</option>
                 </select>
-                <p class="text-[9px] text-gray-500 mt-2 italic">* Number of synthetic tables to generate.</p>
+                <p class="text-[14px] text-gray-500 mt-2 italic">* Number of synthetic tables to generate.</p>
               </div>
 
               <div class="md:col-span-3 pt-4 border-t border-white/5 space-y-4">
@@ -1463,24 +1512,24 @@
                       </div>
                     </div>
                     <span
-                      class="text-[10px] font-bold text-gray-400 uppercase tracking-widest group-hover:text-gray-300 transition-colors">Use
+                      class="text-[15px] font-bold text-gray-400 uppercase tracking-widest group-hover:text-gray-300 transition-colors">Use
                       BigQuery Public Dataset for JOINs</span>
                   </label>
                 </div>
 
 
                 <div id="publicOverrideContainer" class="opacity-50 pointer-events-none transition-all ml-13">
-                  <label class="block text-[9px] text-gray-500 mb-2 font-bold uppercase tracking-widest">Optional:
+                  <label class="block text-[14px] text-gray-500 mb-2 font-bold uppercase tracking-widest">Optional:
                     Public
                     Dataset Override</label>
                   <input id="publicDatasetId" type="text"
-                    class="w-full max-w-md bg-gray-800/50 border border-gray-600 rounded-xl p-3 text-xs text-gray-200 placeholder-gray-600 focus:border-sky-500 outline-none transition-all"
+                    class="w-full max-w-md bg-gray-800/50 border border-gray-600 rounded-xl p-3 text-sm text-gray-200 placeholder-gray-600 focus:border-sky-500 outline-none transition-all"
                     placeholder="bigquery-public-data.dataset.table">
-                  <p class="text-[9px] text-gray-500 mt-2 italic">* Leave blank to auto-discover. Format: <code
+                  <p class="text-[14px] text-gray-500 mt-2 italic">* Leave blank to auto-discover. Format: <code
                       class="text-sky-400/80">project.dataset.table</code></p>
                 </div>
 
-                <p class="text-[9px] text-gray-500 mt-2 ml-13 italic">Enable this to enrich the demo by joining
+                <p class="text-[14px] text-gray-500 mt-2 ml-13 italic">Enable this to enrich the demo by joining
                   synthetic data with real public records. May increase generation time.</p>
 
               </div>
@@ -1492,7 +1541,7 @@
             class="mt-10 w-full bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 text-white font-bold py-5 px-6 rounded-2xl transition-all shadow-lg hover:shadow-sky-500/30 active:scale-[0.99] disabled:opacity-50 flex items-center justify-center gap-3 group">
             <div class="flex flex-col items-center">
               <span id="btnText" class="text-lg uppercase tracking-widest">Generate Setup Script & Assets</span>
-              <span class="text-[10px] opacity-70 font-normal tracking-tight mt-1">This generates a .sh script to be
+              <span class="text-[15px] opacity-70 font-normal tracking-tight mt-1">This generates a .sh script to be
                 executed in Cloud Shell</span>
             </div>
             <svg id="btnSpinner" class="hidden w-6 h-6 spinner" fill="none" viewBox="0 0 24 24">
@@ -1512,28 +1561,28 @@
         <section id="stepsSection" class="hidden glass rounded-2xl p-6 mb-10 fade-in border border-sky-500/30">
           <div class="space-y-4">
             <div id="progress-step-1" class="flex items-center gap-4 transition-all duration-300">
-              <div class="step-icon w-6 h-6 rounded bg-gray-700 flex items-center justify-center text-[10px] font-bold">
+              <div class="step-icon w-7 h-7 rounded bg-gray-700 flex items-center justify-center text-[13px] font-bold">
                 1</div>
               <div class="flex-1">
-                <p class="text-[11px] font-bold text-gray-300 uppercase tracking-tighter">Domain Logic & Data Synthesis
+                <p class="text-[14px] font-bold text-gray-300 uppercase tracking-tighter">Domain Logic & Data Synthesis
                 </p>
-                <p class="text-[9px] text-gray-500 step-message italic">Synthesizing...</p>
+                <p class="text-[14px] text-gray-500 step-message italic">Synthesizing...</p>
               </div>
             </div>
             <div id="progress-step-2" class="flex items-center gap-4 transition-all duration-300">
-              <div class="step-icon w-6 h-6 rounded bg-gray-700 flex items-center justify-center text-[10px] font-bold">
+              <div class="step-icon w-7 h-7 rounded bg-gray-700 flex items-center justify-center text-[13px] font-bold">
                 2</div>
               <div class="flex-1">
-                <p class="text-[11px] font-bold text-gray-300 uppercase tracking-tighter">Deployable Bundle Packaging
+                <p class="text-[14px] font-bold text-gray-300 uppercase tracking-tighter">Deployable Bundle Packaging
                 </p>
-                <p class="text-[9px] text-gray-500 step-message italic">Waiting...</p>
+                <p class="text-[14px] text-gray-500 step-message italic">Waiting...</p>
               </div>
             </div>
           </div>
 
           <!-- Estimated Time Notice & Cancel Button -->
           <div class="mt-6 flex items-center justify-between">
-            <div class="flex items-center gap-2 text-[9px] text-gray-500 italic">
+            <div class="flex items-center gap-2 text-[14px] text-gray-500 italic">
               <svg class="w-3 h-3 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -1541,7 +1590,7 @@
               <span>Estimated: 5-8 minutes depending on data complexity</span>
             </div>
             <button onclick="cancelGeneration()"
-              class="px-4 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 text-[9px] font-bold uppercase tracking-widest transition-all active:scale-95">
+              class="px-4 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 text-[14px] font-bold uppercase tracking-widest transition-all active:scale-95">
               Cancel Generation
             </button>
           </div>
@@ -1549,14 +1598,14 @@
           <!-- Terminal-style Dynamic Logs -->
           <div class="mt-6 p-4 bg-black/40 rounded-xl border border-white/5 font-mono overflow-hidden">
             <div id="generationLogs" class="space-y-1 h-[200px] overflow-y-auto custom-scrollbar">
-              <div class="text-[9px] text-gray-500 italic opacity-50">Initializing system synthesis engines...</div>
+              <div class="text-[14px] text-gray-500 italic opacity-50">Initializing system synthesis engines...</div>
             </div>
           </div>
         </section>
 
         <!-- Error Section -->
         <section id="errorSection"
-          class="hidden glass rounded-2xl p-6 mb-10 border-l-4 border-red-500 fade-in text-red-100 text-xs font-mono">
+          class="hidden glass rounded-2xl p-6 mb-10 border-l-4 border-red-500 fade-in text-red-100 text-sm font-mono">
           <p id="errorMessage"></p>
         </section>
 
@@ -1579,13 +1628,13 @@
               <div class="roadmap-step">
                 <div class="roadmap-dot"></div>
                 <h4 class="text-sm font-bold text-sky-400 uppercase tracking-tight mb-1">Step 2: Review</h4>
-                <p class="text-xs text-gray-400">Review the synthesized data and agent instructions below. You can
+                <p class="text-sm text-gray-400">Review the synthesized data and agent instructions below. You can
                   refine them before proceeding to deployment.</p>
               </div>
               <div class="roadmap-step">
                 <div class="roadmap-dot"></div>
                 <h4 class="text-sm font-bold text-gray-200 uppercase tracking-tight mb-1">Step 3: Deploy</h4>
-                <p class="text-xs text-gray-400">Copy the setup script from <b>Step 3</b> and paste it into Google Cloud
+                <p class="text-sm text-gray-400">Copy the setup script from <b>Step 3</b> and paste it into Google Cloud
                   Shell. The script will provision resources in your selected Google Cloud project. Depending on your
                   choice, you can deploy the agent locally in Cloud Shell, as a Cloud Run service, or directly to Gemini
                   Enterprise.</p>
@@ -1593,7 +1642,7 @@
               <div class="roadmap-step">
                 <div class="roadmap-dot"></div>
                 <h4 class="text-sm font-bold text-gray-200 uppercase tracking-tight mb-1">Step 4: Run Live Demo</h4>
-                <p class="text-xs text-gray-400">Once the script completes, launch your agent from its deployment
+                <p class="text-sm text-gray-400">Once the script completes, launch your agent from its deployment
                   location—whether that is the Gemini Enterprise app, or the ADK Web UI running on Cloud Run or Cloud
                   Shell. To help you run an effective demonstration, use the generated demo prompts tailored
                   specifically to your business challenge and the sample data.</p>
@@ -1604,7 +1653,7 @@
 
           <!-- Google Drive demo kit links (filled when Apps Script provisioning succeeds) -->
           <div id="demoArtifactsLinksSection"
-            class="hidden glass rounded-2xl p-6 mb-10 border border-emerald-500/25 bg-emerald-500/[0.04]">
+            class="glass rounded-2xl p-6 mb-10 border border-emerald-500/25 bg-emerald-500/[0.04]">
             <h3 class="text-sm font-bold text-white uppercase tracking-tight mb-3 flex items-center gap-2">
               <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1612,12 +1661,15 @@
               </svg>
               Demo kit on Google Drive
             </h3>
-            <p class="text-[11px] text-gray-400 mb-4 leading-relaxed">Your narrative guide, copy-paste prompts appendix,
+            <p class="text-[14px] text-gray-400 mb-4 leading-relaxed">Your narrative guide, copy-paste prompts appendix,
               and synthetic attachment files live under <code class="text-emerald-300/90">Demo / {demo folder}</code> in
               the account running this generator.</p>
+            <p id="demoArtifactsUrlsMissing" class="hidden text-[14px] text-amber-400/95 mb-4 leading-relaxed">
+              Drive links were not returned (provisioning may have failed). Check Apps Script execution logs or redeploy and try again.
+            </p>
             <div class="flex flex-col sm:flex-row flex-wrap gap-3">
               <a id="demoGuideDocLink" href="#" target="_blank" rel="noopener noreferrer"
-                class="hidden items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 text-[11px] font-bold uppercase tracking-wide transition-colors">
+                class="hidden items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 text-[14px] font-bold uppercase tracking-wide transition-colors">
                 <span>Open demo guide Doc</span>
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1625,7 +1677,7 @@
                 </svg>
               </a>
               <a id="demoDriveFolderLink" href="#" target="_blank" rel="noopener noreferrer"
-                class="hidden items-center gap-2 px-4 py-2.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-sky-300 text-[11px] font-bold uppercase tracking-wide transition-colors">
+                class="hidden items-center gap-2 px-4 py-2.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-sky-300 text-[14px] font-bold uppercase tracking-wide transition-colors">
                 <span>Open demo Drive folder</span>
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1646,23 +1698,23 @@
             <!-- System Instruction -->
             <div class="mb-10">
               <label
-                class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                class="block text-[15px] font-bold text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
                 Refine Agent Persona & Instructions
                 <span
-                  class="text-[8px] font-normal lowercase opacity-60 bg-white/5 px-2 py-0.5 rounded-full border border-white/10">Dynamic
+                  class="text-[14px] font-normal lowercase opacity-60 bg-white/5 px-2 py-0.5 rounded-full border border-white/10">Dynamic
                   script update</span>
               </label>
               <textarea id="systemInstruction" oninput="updateScriptLocally()" rows="3"
-                class="w-full bg-black/40 border border-gray-700 rounded-2xl p-5 text-[11px] text-sky-200 font-mono transition-all focus:ring-1 focus:ring-sky-500 shadow-inner leading-relaxed"></textarea>
+                class="w-full bg-black/40 border border-gray-700 rounded-2xl p-5 text-[14px] text-sky-200 font-mono transition-all focus:ring-1 focus:ring-sky-500 shadow-inner leading-relaxed"></textarea>
             </div>
 
             <!-- Data Preview -->
             <div>
               <div class="flex items-center justify-between mb-4">
-                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest">Audit Synthesized
+                <label class="block text-[15px] font-bold text-gray-500 uppercase tracking-widest">Audit Synthesized
                   Data Library</label>
                 <button onclick="downloadAllCSV()"
-                  class="text-[9px] text-sky-400 font-bold border-b border-sky-400/30 hover:text-sky-300 transition-colors uppercase font-mono">Download
+                  class="text-[14px] text-sky-400 font-bold border-b border-sky-400/30 hover:text-sky-300 transition-colors uppercase font-mono">Download
                   Raw CSVs</button>
               </div>
 
@@ -1675,7 +1727,7 @@
                       d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z">
                     </path>
                   </svg>
-                  <span class="text-[10px] font-bold text-purple-400 uppercase tracking-widest">Data DNA — AI-Applied
+                  <span class="text-[15px] font-bold text-purple-400 uppercase tracking-widest">Data DNA — AI-Applied
                     Realism Factors</span>
                 </div>
                 <div class="flex flex-wrap gap-2" id="dataDnaBadgesContainer"></div>
@@ -1685,7 +1737,7 @@
               <div id="erDiagramSection" class="hidden mb-10">
                 <div class="flex items-center justify-between mb-4">
                   <label
-                    class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                    class="block text-[15px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
                     <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01">
@@ -1694,7 +1746,7 @@
                     Data Architecture & Relationships
                   </label>
                   <span
-                    class="text-[8px] font-normal lowercase opacity-60 bg-sky-500/10 text-sky-400 px-2 py-0.5 rounded-full border border-sky-500/20">Interactive
+                    class="text-[14px] font-normal lowercase opacity-60 bg-sky-500/10 text-sky-400 px-2 py-0.5 rounded-full border border-sky-500/20">Interactive
                     Diagram</span>
                 </div>
                 <div class="glass p-1 rounded-2xl border border-white/5 relative overflow-hidden group">
@@ -1703,11 +1755,11 @@
                   <div class="absolute bottom-4 left-4 flex flex-col gap-1.5 pointer-events-none">
                     <div class="flex items-center gap-2">
                       <div class="w-3 h-3 rounded bg-sky-500/20 border border-sky-400"></div>
-                      <span class="text-[8px] text-gray-400 font-bold uppercase tracking-widest">Table (Node)</span>
+                      <span class="text-[14px] text-gray-400 font-bold uppercase tracking-widest">Table (Node)</span>
                     </div>
                     <div class="flex items-center gap-2">
                       <div class="w-6 h-0.5 bg-sky-400/40"></div>
-                      <span class="text-[8px] text-gray-400 font-bold uppercase tracking-widest">Relationship
+                      <span class="text-[14px] text-gray-400 font-bold uppercase tracking-widest">Relationship
                         (Edge)</span>
                     </div>
                   </div>
@@ -1728,12 +1780,12 @@
                   class="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-white font-bold text-xl shadow-lg shadow-emerald-500/40">3</span>
                 <div>
                   <h2 class="step-title-theme text-2xl font-bold uppercase tracking-tight">Step 3: Deploy</h2>
-                  <p class="text-[11px] text-gray-500">Run the synthesized environment in your own GCP project</p>
+                  <p class="text-[14px] text-gray-500">Run the synthesized environment in your own GCP project</p>
                 </div>
               </div>
               <a href="https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/samuelfeng510/AWT-Demo-Engine-V2.git"
                 target="_blank" rel="noopener noreferrer"
-                class="px-4 py-2 bg-sky-600/80 hover:bg-sky-500 text-white font-bold rounded-xl text-[10px] transition-all shadow-lg flex items-center gap-2 uppercase tracking-wider border border-sky-400/20 hover:scale-105">
+                class="px-4 py-2 bg-sky-600/80 hover:bg-sky-500 text-white font-bold rounded-xl text-[15px] transition-all shadow-lg flex items-center gap-2 uppercase tracking-wider border border-sky-400/20 hover:scale-105">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z">
@@ -1753,7 +1805,7 @@
             <div class="mb-10">
               <div class="flex items-center gap-3 mb-6">
                 <span
-                  class="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400 font-bold text-xs border border-emerald-500/30">1</span>
+                  class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400 font-bold text-sm border border-emerald-500/30">1</span>
                 <h3 class="text-sm font-bold text-gray-200 uppercase tracking-widest">Environment Setup</h3>
               </div>
 
@@ -1769,7 +1821,7 @@
                       </svg>
                     </div>
                     <div class="flex-1 space-y-4">
-                      <p class="text-[13px] text-gray-300 leading-relaxed">
+                      <p class="text-[15px] text-gray-300 leading-relaxed">
                         1. <a href="https://console.cloud.google.com?cloudshell=true" target="_blank"
                           rel="noopener noreferrer"
                           class="text-emerald-400 hover:text-emerald-300 underline underline-offset-2">Open Cloud
@@ -1778,16 +1830,16 @@
                       </p>
                       <div class="relative max-w-md">
                         <input type="text" id="projectIdInput"
-                          class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-[11px] font-mono text-emerald-400 focus:outline-none focus:border-emerald-500/50 transition-all placeholder-gray-600"
+                          class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-[14px] font-mono text-emerald-400 focus:outline-none focus:border-emerald-500/50 transition-all placeholder-gray-600"
                           placeholder="my-project-id" value="" oninput="updateProjectSetCmd()">
                         <span
-                          class="absolute right-4 top-2.5 text-[8px] text-gray-500 uppercase tracking-widest font-bold">PROJECT
+                          class="absolute right-4 top-2.5 text-[14px] text-gray-500 uppercase tracking-widest font-bold">PROJECT
                           ID</span>
                       </div>
 
                       <div class="relative group/cmd">
                         <code id="projectSetCmdDisplay"
-                          class="block bg-black/30 border border-emerald-500/10 rounded-xl p-4 text-[11px] text-emerald-300 font-mono pr-12 leading-relaxed tracking-tight">gcloud config set project [PROJECT_ID] && cd ~</code>
+                          class="block bg-black/30 border border-emerald-500/10 rounded-xl p-4 text-[14px] text-emerald-300 font-mono pr-12 leading-relaxed tracking-tight">gcloud config set project [PROJECT_ID] && cd ~</code>
                         <button onclick="copyProjectCmd()"
                           class="absolute top-2.5 right-2.5 p-2 rounded-lg bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600 hover:text-white transition-all shadow-lg border border-emerald-500/30">
                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1812,14 +1864,14 @@
                       </svg>
                     </div>
                     <div class="flex-1 space-y-4">
-                      <p class="text-[13px] text-gray-300 leading-relaxed">
+                      <p class="text-[15px] text-gray-300 leading-relaxed">
                         2. <b>Authenticate gcloud</b> to ensure your terminal has necessary permissions to deploy
                         resources.
                       </p>
                       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div class="relative group/cmd">
                           <code
-                            class="block bg-black/40 border border-sky-500/20 rounded-xl p-3 text-[10px] text-sky-300 font-mono pr-12">gcloud auth login</code>
+                            class="block bg-black/40 border border-sky-500/20 rounded-xl p-3 text-[15px] text-sky-300 font-mono pr-12">gcloud auth login</code>
                           <button onclick="copyToClipboard('gcloud auth login')"
                             class="absolute top-2 right-2 p-1.5 rounded-lg bg-sky-500/10 text-sky-400 hover:bg-sky-500 hover:text-white transition-all border border-sky-500/20">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1831,7 +1883,7 @@
                         </div>
                         <div class="relative group/cmd">
                           <code
-                            class="block bg-black/40 border border-sky-500/20 rounded-xl p-3 text-[10px] text-sky-300 font-mono pr-12">gcloud auth application-default login</code>
+                            class="block bg-black/40 border border-sky-500/20 rounded-xl p-3 text-[15px] text-sky-300 font-mono pr-12">gcloud auth application-default login</code>
                           <button onclick="copyToClipboard('gcloud auth application-default login')"
                             class="absolute top-2 right-2 p-1.5 rounded-lg bg-sky-500/10 text-sky-400 hover:bg-sky-500 hover:text-white transition-all border border-sky-500/20">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1852,18 +1904,18 @@
             <div>
               <div class="flex items-center gap-3 mb-6">
                 <span
-                  class="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400 font-bold text-xs border border-emerald-500/30">2</span>
+                  class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400 font-bold text-sm border border-emerald-500/30">2</span>
                 <h3 class="text-sm font-bold text-gray-200 uppercase tracking-widest">Execute & Confirm</h3>
               </div>
 
               <div class="space-y-6">
                 <div class="flex-1">
                   <div class="flex items-center justify-between mb-4">
-                    <p class="text-[13px] text-gray-300 leading-relaxed">
+                    <p class="text-[15px] text-gray-300 leading-relaxed">
                       Copy and paste the setup script into your Cloud Shell. And then hit the enter key.
                     </p>
                     <button onclick="copyToClipboard(document.getElementById('setupCommand').innerText)"
-                      class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-[11px] transition-all shadow-lg flex items-center gap-2 uppercase tracking-wider flex-shrink-0 ml-4">
+                      class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-[14px] transition-all shadow-lg flex items-center gap-2 uppercase tracking-wider flex-shrink-0 ml-4">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3">
@@ -1891,7 +1943,7 @@
                       </div>
 
                       <pre id="setupCommand"
-                        class="p-6 pb-4 text-[11px] font-mono text-emerald-400 overflow-x-auto whitespace-pre-wrap break-all"></pre>
+                        class="p-6 pb-4 text-[14px] font-mono text-emerald-400 overflow-x-auto whitespace-pre-wrap break-all"></pre>
 
                       <div
                         class="sticky bottom-0 left-0 right-0 z-10 flex justify-center py-4 bg-gradient-to-t from-black via-black/90 to-transparent pointer-events-none"
@@ -1903,7 +1955,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
                             </path>
                           </svg>
-                          <span id="inlineToggleText" class="text-[10px] uppercase tracking-wider">Show Full
+                          <span id="inlineToggleText" class="text-[15px] uppercase tracking-wider">Show Full
                             Script</span>
                         </button>
                       </div>
@@ -1914,14 +1966,14 @@
 
               <!-- Setup Script Configurations -->
               <div class="mt-8 space-y-4">
-                <h4 class="text-[12px] font-bold text-gray-300 uppercase tracking-widest flex items-center gap-2">
+                <h4 class="text-[14px] font-bold text-gray-300 uppercase tracking-widest flex items-center gap-2">
                   <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                   </svg>
                   Deployment Strategies
                 </h4>
-                <p class="text-[13px] text-gray-400 leading-relaxed mb-4">
+                <p class="text-[15px] text-gray-400 leading-relaxed mb-4">
                   During the setup script execution, you will be prompted to select one of three deployment strategies:
                 </p>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1930,10 +1982,10 @@
                     class="bg-black/40 border border-white/5 rounded-xl p-4 hover:border-emerald-500/30 transition-all shadow-lg flex flex-col gap-2">
                     <div class="flex items-center gap-2">
                       <span
-                        class="w-5 h-5 rounded-md bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-[10px] font-bold">1</span>
-                      <h5 class="text-[11px] font-bold text-gray-300 uppercase tracking-wide">Local Host</h5>
+                        class="w-6 h-6 rounded-md bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-[13px] font-bold">1</span>
+                      <h5 class="text-[14px] font-bold text-gray-300 uppercase tracking-wide">Local Host</h5>
                     </div>
-                    <p class="text-[11px] text-gray-400 leading-relaxed">
+                    <p class="text-[14px] text-gray-400 leading-relaxed">
                       Runs the agent server locally. When the script completes, click the
                       <code
                         class="text-emerald-300 font-mono bg-black/30 px-1.5 py-0.5 rounded">http://127.0.0.1:[PORT]</code>
@@ -1945,10 +1997,10 @@
                     class="bg-black/40 border border-white/5 rounded-xl p-4 hover:border-sky-500/30 transition-all shadow-lg flex flex-col gap-2">
                     <div class="flex items-center gap-2">
                       <span
-                        class="w-5 h-5 rounded-md bg-sky-500/10 text-sky-400 flex items-center justify-center text-[10px] font-bold">2</span>
-                      <h5 class="text-[11px] font-bold text-gray-300 uppercase tracking-wide">Cloud Run</h5>
+                        class="w-6 h-6 rounded-md bg-sky-500/10 text-sky-400 flex items-center justify-center text-[13px] font-bold">2</span>
+                      <h5 class="text-[14px] font-bold text-gray-300 uppercase tracking-wide">Cloud Run</h5>
                     </div>
-                    <p class="text-[11px] text-gray-400 leading-relaxed">
+                    <p class="text-[14px] text-gray-400 leading-relaxed">
                       Deploys the agent server to Google Cloud Run as a publicly accessible endpoint.
                     </p>
                   </div>
@@ -1957,18 +2009,18 @@
                     class="bg-black/40 border border-white/5 rounded-xl p-3 hover:border-purple-500/30 transition-all shadow-lg flex flex-col gap-1">
                     <div class="flex items-center gap-2">
                       <span
-                        class="w-5 h-5 rounded-md bg-purple-500/10 text-purple-400 flex items-center justify-center text-[10px] font-bold">3</span>
-                      <h5 class="text-[11px] font-bold text-gray-300 uppercase tracking-wide">Gemini Enterprise</h5>
+                        class="w-6 h-6 rounded-md bg-purple-500/10 text-purple-400 flex items-center justify-center text-[13px] font-bold">3</span>
+                      <h5 class="text-[14px] font-bold text-gray-300 uppercase tracking-wide">Gemini Enterprise</h5>
                     </div>
-                    <p class="text-[11px] text-gray-400 leading-relaxed">
+                    <p class="text-[14px] text-gray-400 leading-relaxed">
                       Deploys to Reasoning Engine. Requires a prerequisite instance.
                     </p>
-                    <p class="text-[10px] text-purple-300/80 leading-relaxed mt-1">
+                    <p class="text-[15px] text-purple-300/80 leading-relaxed mt-1">
                       Must ensure an instance is created in your project <b>before</b> running the script.
                     </p>
                     <a href="https://console.cloud.google.com/gemini-enterprise/apps" id="geminiEnterpriseLink"
                       target="_blank" rel="noopener noreferrer"
-                      class="mt-1 inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-600/50 hover:bg-purple-500 text-white font-bold rounded-lg text-[9px] transition-all border border-purple-400/20 w-fit">
+                      class="mt-1 inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-600/50 hover:bg-purple-500 text-white font-bold rounded-lg text-[14px] transition-all border border-purple-400/20 w-fit">
                       <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
@@ -1992,7 +2044,7 @@
               class="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-white font-bold text-xl shadow-lg shadow-emerald-500/40">4</span>
             <div>
               <h2 class="step-title-theme text-2xl font-bold uppercase tracking-tight">Step 4: Run Live Demo</h2>
-              <p class="text-[11px] text-gray-500">Engage with your agent using personalized scenarios</p>
+              <p class="text-[14px] text-gray-500">Engage with your agent using personalized scenarios</p>
             </div>
           </div>
 
@@ -2015,7 +2067,7 @@
                 <div>
                   <h3 class="step-title-theme text-sm font-bold uppercase tracking-tight">How to manage the local host demo
                   </h3>
-                  <p class="text-[10px] text-gray-500">Authentication required & local environment commands</p>
+                  <p class="text-[15px] text-gray-500">Authentication required & local environment commands</p>
                 </div>
               </div>
               <svg id="localMgmtChevron" class="w-5 h-5 text-gray-500 transition-transform duration-300" fill="none"
@@ -2035,15 +2087,15 @@
                   </svg>
                 </div>
                 <div class="flex-1">
-                  <h4 class="text-[12px] font-bold text-red-400 uppercase tracking-widest mb-1">Authentication Required
+                  <h4 class="text-[14px] font-bold text-red-400 uppercase tracking-widest mb-1">Authentication Required
                   </h4>
-                  <p class="text-[13px] text-red-300/80 leading-relaxed mb-4">
+                  <p class="text-[15px] text-red-300/80 leading-relaxed mb-4">
                     Before proceeding, ensure you have executed <b>both</b> commands below in your terminal.
                   </p>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div class="relative group/cmd">
                       <code
-                        class="block bg-black/40 border border-red-500/20 rounded-xl p-3 text-[11px] text-red-200 font-mono">gcloud auth login</code>
+                        class="block bg-black/40 border border-red-500/20 rounded-xl p-3 text-[14px] text-red-200 font-mono">gcloud auth login</code>
                       <button onclick="copyToClipboard('gcloud auth login')"
                         class="absolute top-2 right-2 p-1.5 rounded-lg bg-gray-800 text-gray-400 hover:text-white opacity-0 group-hover/cmd:opacity-100 transition-all border border-gray-700">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2055,7 +2107,7 @@
                     </div>
                     <div class="relative group/cmd">
                       <code
-                        class="block bg-black/40 border border-red-500/20 rounded-xl p-3 text-[11px] text-red-200 font-mono">gcloud auth application-default login</code>
+                        class="block bg-black/40 border border-red-500/20 rounded-xl p-3 text-[14px] text-red-200 font-mono">gcloud auth application-default login</code>
                       <button onclick="copyToClipboard('gcloud auth application-default login')"
                         class="absolute top-2 right-2 p-1.5 rounded-lg bg-gray-800 text-gray-400 hover:text-white opacity-0 group-hover/cmd:opacity-100 transition-all border border-gray-700">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2072,7 +2124,7 @@
               <!-- Managing the Agent UI (ADK Web) -->
               <div class="p-6 bg-black/30 rounded-2xl border border-white/5">
                 <div class="flex items-center gap-2 mb-4">
-                  <h3 class="text-xs font-bold text-sky-400 uppercase tracking-widest flex items-center gap-2">
+                  <h3 class="text-sm font-bold text-sky-400 uppercase tracking-widest flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
@@ -2092,18 +2144,18 @@
                   </span>
                 </div>
 
-                <p class="text-[12px] text-gray-400 mb-6 leading-relaxed">
+                <p class="text-[14px] text-gray-400 mb-6 leading-relaxed">
                   Open your terminal and navigate to the <strong>adk_agent</strong> folder inside the generated demo
                   directory (<code id="adkDirPlaceholder2" class="text-sky-300 font-mono">demo-directory</code>).
                 </p>
 
                 <div
                   class="mb-6 p-4 bg-black/40 rounded-xl border border-white/5 hover:border-sky-500/30 transition-all shadow-inner group/cmd relative">
-                  <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 text-center">Navigate to
+                  <p class="text-[15px] font-bold text-gray-500 uppercase tracking-widest mb-3 text-center">Navigate to
                     Agent Folder</p>
                   <div class="flex items-center justify-center gap-3">
                     <code id="cdCommandBlockStep4"
-                      class="text-[13px] text-sky-300 font-mono bg-sky-950/30 px-3 py-1.5 rounded-lg border border-sky-500/20">cd ~/demo-directory/adk_agent</code>
+                      class="text-[15px] text-sky-300 font-mono bg-sky-950/30 px-3 py-1.5 rounded-lg border border-sky-500/20">cd ~/demo-directory/adk_agent</code>
                     <button onclick="copyToClipboard(document.getElementById('cdCommandBlockStep4').innerText)"
                       class="p-2 rounded-lg bg-gray-800 text-gray-400 hover:text-white transition-all border border-gray-700 shadow-sm">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2118,9 +2170,9 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div
                     class="p-4 bg-black/40 rounded-xl border border-white/5 hover:border-sky-500/30 transition-all shadow-inner group/cmd relative">
-                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">To START Agent UI</p>
+                    <p class="text-[15px] font-bold text-gray-500 uppercase tracking-widest mb-2">To START Agent UI</p>
                     <code
-                      class="text-[12px] text-sky-300 font-mono bg-sky-950/30 px-2 py-1 rounded">../.venv/bin/adk web --allow_origins="*"</code>
+                      class="text-[14px] text-sky-300 font-mono bg-sky-950/30 px-2 py-1 rounded">../.venv/bin/adk web --allow_origins="*"</code>
                     <button onclick="copyToClipboard('../.venv/bin/adk web --allow_origins=&quot;*&quot;')"
                       class="absolute top-3 right-3 p-1.5 rounded-lg bg-gray-800 text-gray-400 hover:text-white opacity-0 group-hover/cmd:opacity-100 transition-all border border-gray-700">
                       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2129,27 +2181,27 @@
                         </path>
                       </svg>
                     </button>
-                    <p class="text-[9px] text-gray-500 mt-2 font-medium italic">
+                    <p class="text-[14px] text-gray-500 mt-2 font-medium italic">
                       Note: The setup script auto-detects a free port (e.g. 8001) if 8000 is occupied.
                     </p>
                   </div>
                   <div
                     class="p-4 bg-black/40 rounded-xl border border-white/5 hover:border-sky-500/30 transition-all shadow-inner">
-                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">To STOP</p>
-                    <div class="flex items-center gap-2 text-[12px] text-gray-300">
+                    <p class="text-[15px] font-bold text-gray-500 uppercase tracking-widest mb-2">To STOP</p>
+                    <div class="flex items-center gap-2 text-[14px] text-gray-300">
                       <kbd
-                        class="px-2 py-1 bg-gray-800 border-b-2 border-gray-900 rounded-lg font-mono text-white text-[10px]">Ctrl</kbd>
+                        class="px-2 py-1 bg-gray-800 border-b-2 border-gray-900 rounded-lg font-mono text-white text-[15px]">Ctrl</kbd>
                       <span>+</span>
                       <kbd
-                        class="px-2 py-1 bg-gray-800 border-b-2 border-gray-900 rounded-lg font-mono text-white text-[10px]">C</kbd>
+                        class="px-2 py-1 bg-gray-800 border-b-2 border-gray-900 rounded-lg font-mono text-white text-[15px]">C</kbd>
                     </div>
                   </div>
                   <div
                     class="p-4 bg-black/40 rounded-xl border border-white/5 hover:border-sky-500/30 transition-all shadow-inner group/cmd relative">
-                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">To RESTART</p>
-                    <p class="text-[11px] text-gray-400 leading-relaxed mb-1">Stop (Ctrl+C), then run:</p>
+                    <p class="text-[15px] font-bold text-gray-500 uppercase tracking-widest mb-2">To RESTART</p>
+                    <p class="text-[14px] text-gray-400 leading-relaxed mb-1">Stop (Ctrl+C), then run:</p>
                     <code
-                      class="text-sky-300 font-mono bg-sky-950/30 px-1 rounded block text-[12px]">../.venv/bin/adk web --allow_origins="*"</code>
+                      class="text-sky-300 font-mono bg-sky-950/30 px-1 rounded block text-[14px]">../.venv/bin/adk web --allow_origins="*"</code>
                     <button onclick="copyToClipboard('../.venv/bin/adk web --allow_origins=&quot;*&quot;')"
                       class="absolute top-3 right-3 p-1.5 rounded-lg bg-gray-800 text-gray-400 hover:text-white opacity-0 group-hover/cmd:opacity-100 transition-all border border-gray-700">
                       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2178,7 +2230,7 @@
               </span>
               <div>
                 <h3 class="step-title-theme text-sm font-bold uppercase tracking-tight">External Domain Files</h3>
-                <p class="text-[10px] text-gray-500">Download these files and upload them to the agent chat if required
+                <p class="text-[15px] text-gray-500">Download these files and upload them to the agent chat if required
                 </p>
               </div>
             </div>
@@ -2189,7 +2241,7 @@
 
           <div class="flex items-center justify-between mb-6">
             <label
-              class="block text-[11px] font-bold text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+              class="block text-[14px] font-bold text-emerald-400 uppercase tracking-widest flex items-center gap-2">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z">
@@ -2908,7 +2960,7 @@
         const btn = document.createElement('button');
         btn.onclick = () => { selectedIndustry = ind.id; updateSamples(); };
         const isActive = selectedIndustry === ind.id;
-        btn.className = `px-4 py-2 rounded-xl text-[10px] font-bold transition-all border ${isActive
+        btn.className = `px-4 py-2 rounded-xl text-[15px] font-bold transition-all border ${isActive
           ? 'bg-sky-500/20 border-sky-500 text-sky-400 shadow-lg shadow-sky-500/20'
           : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:border-white/20'
           }`;
@@ -2923,7 +2975,7 @@
         const btn = document.createElement('button');
         btn.onclick = () => { selectedFunction = func.id; updateSamples(); };
         const isActive = selectedFunction === func.id;
-        btn.className = `px-3 py-1.5 rounded-lg text-[9px] font-medium transition-all border ${isActive
+        btn.className = `px-3 py-1.5 rounded-lg text-[14px] font-medium transition-all border ${isActive
           ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
           : 'bg-white/5 border-white/10 text-gray-500 hover:text-gray-300'
           }`;
@@ -2940,7 +2992,7 @@
       );
 
       if (filtered.length === 0) {
-        templateGrid.innerHTML = `<div class="col-span-full py-10 text-center text-gray-500 text-[10px] italic">No matching templates found for this combination. Try another job function.</div>`;
+        templateGrid.innerHTML = `<div class="col-span-full py-10 text-center text-gray-500 text-[15px] italic">No matching templates found for this combination. Try another job function.</div>`;
         return;
       }
 
@@ -2951,13 +3003,13 @@
         card.innerHTML = `
           <div>
             <div class="flex items-center gap-2 mb-2">
-              <span class="text-[8px] font-bold text-gray-500 uppercase tracking-tighter bg-white/5 px-1.5 py-0.5 rounded border border-white/10">${temp.function}</span>
+              <span class="text-[14px] font-bold text-gray-500 uppercase tracking-tighter bg-white/5 px-1.5 py-0.5 rounded border border-white/10">${temp.function}</span>
             </div>
-            <h4 class="text-[11px] font-bold text-gray-200 group-hover:text-white mb-2 leading-tight">${temp.label}</h4>
-            <p class="text-[10px] text-gray-500 group-hover:text-gray-400 line-clamp-3 leading-relaxed">${temp.text}</p>
+            <h4 class="text-[14px] font-bold text-gray-200 group-hover:text-white mb-2 leading-tight">${temp.label}</h4>
+            <p class="text-[15px] text-gray-500 group-hover:text-gray-400 line-clamp-3 leading-relaxed">${temp.text}</p>
           </div>
           <div class="mt-4 flex justify-end">
-            <span class="text-[9px] font-bold text-sky-400 opacity-0 group-hover:opacity-100 transition-all uppercase tracking-widest flex items-center gap-1">
+            <span class="text-[14px] font-bold text-sky-400 opacity-0 group-hover:opacity-100 transition-all uppercase tracking-widest flex items-center gap-1">
               Select
               <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
             </span>
@@ -3024,7 +3076,7 @@
       const s2 = document.getElementById('progress-step-2');
       s1.className = 'flex items-center gap-4 transition-all duration-300';
       s2.className = 'flex items-center gap-4 transition-all duration-300';
-      s1.querySelector('.step-icon').className = 'step-icon w-6 h-6 rounded bg-sky-500/20 text-sky-400 flex items-center justify-center text-[10px] font-bold animate-pulse';
+      s1.querySelector('.step-icon').className = 'step-icon w-6 h-6 rounded bg-sky-500/20 text-sky-400 flex items-center justify-center text-[15px] font-bold animate-pulse';
       s1.querySelector('.step-message').innerText = 'Synthesizing...';
       s2.querySelector('.step-message').innerText = 'Waiting...';
 
@@ -3041,7 +3093,7 @@
         if (isCancelled) return;
         s1.classList.add('step-completed');
         s1.querySelector('.step-message').innerText = 'Logic synthesis successful';
-        s2.querySelector('.step-icon').className = 'step-icon w-6 h-6 rounded bg-sky-500/20 text-sky-400 flex items-center justify-center text-[10px] font-bold animate-pulse';
+        s2.querySelector('.step-icon').className = 'step-icon w-6 h-6 rounded bg-sky-500/20 text-sky-400 flex items-center justify-center text-[15px] font-bold animate-pulse';
         s2.querySelector('.step-message').innerText = 'Bundling assets... (this may take 5-8 minutes)';
       }, 25000); // More realistic ~25s timing
 
@@ -3140,13 +3192,15 @@
       if (demoArtifactsSection && demoGuideDocLink && demoDriveFolderLink) {
         const docUrl = res.demoGuideDocUrl;
         const folderUrl = res.demoDriveFolderUrl;
+        demoArtifactsSection.classList.remove('hidden');
         demoGuideDocLink.classList.toggle('hidden', !docUrl);
         demoGuideDocLink.classList.toggle('inline-flex', !!docUrl);
         demoDriveFolderLink.classList.toggle('hidden', !folderUrl);
         demoDriveFolderLink.classList.toggle('inline-flex', !!folderUrl);
         if (docUrl) demoGuideDocLink.href = docUrl;
         if (folderUrl) demoDriveFolderLink.href = folderUrl;
-        demoArtifactsSection.classList.toggle('hidden', !(docUrl || folderUrl));
+        const demoArtMiss = document.getElementById('demoArtifactsUrlsMissing');
+        if (demoArtMiss) demoArtMiss.classList.toggle('hidden', !!(docUrl || folderUrl));
       }
 
       // External Files Population
@@ -3167,12 +3221,12 @@
               <div>
                 <div class="flex items-center gap-2 mb-2">
                   <span class="text-xl">${fileIcon}</span>
-                  <span class="text-[12px] font-bold text-theme-adaptive font-mono break-all">${file.fileName}</span>
+                  <span class="text-[14px] font-bold text-theme-adaptive font-mono break-all">${file.fileName}</span>
                 </div>
-                <p class="text-[11px] text-gray-400 mb-3">${file.description || 'No description'}</p>
-                <div class="text-[10px] text-gray-500 mb-2">Type: ${fileTypeLabel}</div>
+                <p class="text-[14px] text-gray-400 mb-3">${file.description || 'No description'}</p>
+                <div class="text-[15px] text-gray-500 mb-2">Type: ${fileTypeLabel}</div>
               </div>
-              <button onclick="${isExcel ? 'downloadExternalExcel' : 'downloadExternalPDF'}(${index})" class="w-full flex items-center justify-center gap-2 px-3 py-2 bg-amber-500/20 hover:bg-amber-500 text-amber-400 font-bold rounded-lg text-[11px] transition-all uppercase tracking-wider border border-amber-500/30">
+              <button onclick="${isExcel ? 'downloadExternalExcel' : 'downloadExternalPDF'}(${index})" class="w-full flex items-center justify-center gap-2 px-3 py-2 bg-amber-500/20 hover:bg-amber-500 text-amber-400 font-bold rounded-lg text-[14px] transition-all uppercase tracking-wider border border-amber-500/30">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                 </svg>
@@ -3201,23 +3255,23 @@
           div.innerHTML = `
                <div class="flex items-center justify-between gap-3">
                   <div class="flex items-center gap-3 flex-wrap">
-                    <span class="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 w-6 h-6 rounded-lg flex items-center justify-center shadow-inner tracking-tighter">${i + 1}</span>
-                    <p class="text-[11px] font-bold text-gray-300 uppercase tracking-widest">${title}</p>
-                    ${isAWT ? `<span class="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-lg border border-amber-500/20">AWT</span>` : ''}
-                    ${tags.map(tag => `<span class="text-[9px] font-medium text-sky-400 bg-sky-500/10 px-1.5 py-0.5 rounded border border-sky-500/20">${tag}</span>`).join('')}
+                    <span class="text-[15px] font-bold text-emerald-400 bg-emerald-500/10 w-6 h-6 rounded-lg flex items-center justify-center shadow-inner tracking-tighter">${i + 1}</span>
+                    <p class="text-[14px] font-bold text-gray-300 uppercase tracking-widest">${title}</p>
+                    ${isAWT ? `<span class="text-[15px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-lg border border-amber-500/20">AWT</span>` : ''}
+                    ${tags.map(tag => `<span class="text-[14px] font-medium text-sky-400 bg-sky-500/10 px-1.5 py-0.5 rounded border border-sky-500/20">${tag}</span>`).join('')}
                   </div>
                   <div class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/5 border border-emerald-500/10">
                     <span class="relative flex h-1.5 w-1.5">
                       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                       <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
                     </span>
-                    <span class="text-[9px] font-bold text-emerald-500/80 uppercase tracking-tighter">Recommended</span>
+                    <span class="text-[14px] font-bold text-emerald-500/80 uppercase tracking-tighter">Recommended</span>
                   </div>
                </div>
                 <div class="relative bg-black/60 rounded-xl p-4 border border-white/5 hover:border-emerald-500/30 transition-all min-w-0 group/copy">
-                  <p class="text-[13px] text-sky-200 select-text leading-relaxed font-mono">${prompt}</p>
+                  <p class="text-[15px] text-sky-200 select-text leading-relaxed font-mono">${prompt}</p>
                   <button onclick="copyToClipboard(this.previousElementSibling.innerText)" class="absolute top-3 right-3 p-2 rounded-lg bg-emerald-500/10 backdrop-blur-md text-emerald-400/70 opacity-0 group-hover/copy:opacity-100 transition-all border border-emerald-500/20 shadow-lg hover:text-emerald-300 hover:bg-emerald-500/30 hover:border-emerald-500/50 active:bg-emerald-500 active:text-white active:border-emerald-400 active:scale-95 flex items-center gap-1.5 cursor-pointer duration-200" title="Copy prompt">
-                    <span class="text-[10px] font-bold tracking-wide">COPY</span>
+                    <span class="text-[15px] font-bold tracking-wide">COPY</span>
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
                   </button>
                </div>
@@ -3247,7 +3301,7 @@
           itemList.forEach(item => {
             if (!item) return;
             const badge = document.createElement('span');
-            badge.className = `text-[9px] ${style.bg} ${style.text} border ${style.border} px-2 py-1 rounded-full font-medium flex items-center gap-1 transition-all hover:scale-105`;
+            badge.className = `text-[14px] ${style.bg} ${style.text} border ${style.border} px-2 py-1 rounded-full font-medium flex items-center gap-1 transition-all hover:scale-105`;
             badge.innerHTML = `<span>${style.icon}</span><span>${item}</span>`;
             dataDnaBadgesContainer.appendChild(badge);
             hasBadges = true;
@@ -3297,10 +3351,10 @@
         let html = `
           <div class="bg-white/5 px-4 py-3 flex items-center justify-between border-b border-white/5">
             <div class="flex items-center gap-3">
-              <span class="text-[10px] font-bold text-sky-400 uppercase tracking-widest px-2 py-0.5 rounded bg-sky-500/10">${table.tableName}</span>
+              <span class="text-[15px] font-bold text-sky-400 uppercase tracking-widest px-2 py-0.5 rounded bg-sky-500/10">${table.tableName}</span>
               <div class="flex gap-2">
-                <span class="text-[8px] text-gray-500 bg-black/40 px-1.5 py-0.5 rounded border border-white/5">${table.headers.length} COLUMNS</span>
-                <span class="text-[8px] text-gray-500 bg-black/40 px-1.5 py-0.5 rounded border border-white/5">${totalRows} TOTAL ROWS</span>
+                <span class="text-[14px] text-gray-500 bg-black/40 px-1.5 py-0.5 rounded border border-white/5">${table.headers.length} COLUMNS</span>
+                <span class="text-[14px] text-gray-500 bg-black/40 px-1.5 py-0.5 rounded border border-white/5">${totalRows} TOTAL ROWS</span>
               </div>
             </div>
             <div class="flex items-center gap-4">
@@ -3308,7 +3362,7 @@
                  <div class="w-16 h-1 bg-white/5 rounded-full overflow-hidden">
                    <div class="h-full bg-sky-500/50" style="width: ${density}%"></div>
                  </div>
-                 <span class="text-[8px] text-gray-600 font-mono italic">Sample ${density}%</span>
+                 <span class="text-[14px] text-gray-600 font-mono italic">Sample ${density}%</span>
                </div>
             </div>
           </div>`;
@@ -3316,7 +3370,7 @@
         html += `
           <div class="overflow-x-auto custom-scrollbar">
             <div class="max-h-[220px] overflow-y-auto custom-scrollbar-y">
-              <table class="w-full text-[10px] text-left">
+              <table class="w-full text-[15px] text-left">
                 <thead class="bg-black/40 text-gray-500 uppercase tracking-tighter sticky top-0 z-10 backdrop-blur-md">
                   <tr>`;
 
@@ -3911,11 +3965,11 @@
       <div class="space-y-6 mb-10">
         <div class="flex gap-4">
           <div
-            class="flex-shrink-0 w-8 h-8 rounded-full bg-sky-500/10 flex items-center justify-center text-xs font-bold text-sky-400 border border-sky-500/20">
+            class="flex-shrink-0 w-9 h-9 rounded-full bg-sky-500/10 flex items-center justify-center text-sm font-bold text-sky-400 border border-sky-500/20">
             🚀</div>
           <div>
             <h4 class="text-sm font-bold text-gray-200 mb-1">What is this?</h4>
-            <p class="text-xs text-gray-400 leading-relaxed"><b>AWT Demo Engine</b> — source on <a
+            <p class="text-sm text-gray-400 leading-relaxed"><b>AWT Demo Engine</b> — source on <a
                 href="https://github.com/samuelfeng510/AWT-Demo-Engine-V2" target="_blank" rel="noopener noreferrer"
                 class="text-sky-400 hover:underline font-bold">GitHub</a>. Uses <b>Vertex AI</b> to plan <b>BigQuery</b>
               data, <b>agent instructions</b>, Drive demo kit, and optional <b>Workspace seed data</b>. You set <b>demo
@@ -3930,21 +3984,21 @@
         </div>
         <div class="flex gap-4">
           <div
-            class="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-xs font-bold text-emerald-400 border border-emerald-500/20">
+            class="flex-shrink-0 w-9 h-9 rounded-full bg-emerald-500/10 flex items-center justify-center text-sm font-bold text-emerald-400 border border-emerald-500/20">
             ⚡</div>
           <div>
             <h4 class="text-sm font-bold text-gray-200 mb-1">The Benefit</h4>
-            <p class="text-xs text-gray-400 leading-relaxed">Skip the data prep. Generate a complete, grounded demo
+            <p class="text-sm text-gray-400 leading-relaxed">Skip the data prep. Generate a complete, grounded demo
               environment tailored to any industry challenge or customer pitch instantly.</p>
           </div>
         </div>
         <div class="flex gap-4">
           <div
-            class="flex-shrink-0 w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center text-xs font-bold text-amber-400 border border-amber-500/20">
+            class="flex-shrink-0 w-9 h-9 rounded-full bg-amber-500/10 flex items-center justify-center text-sm font-bold text-amber-400 border border-amber-500/20">
             🛡️</div>
           <div>
             <h4 class="text-sm font-bold text-gray-200 mb-1">How it works</h4>
-            <p class="text-xs text-gray-400 leading-relaxed">Generate outputs in your browser: a downloadable
+            <p class="text-sm text-gray-400 leading-relaxed">Generate outputs in your browser: a downloadable
               <code class="text-gray-300">setup.sh</code> that provisions BigQuery and the local ADK agent, plus—when
               generation succeeds—a <b>Demo</b> folder in Drive with a <b>demo guide</b> Google Doc, scenario prompts,
               and file attachments. Copy <code class="text-gray-300">setup.sh</code> into <b>Cloud Shell</b> (or your
@@ -3969,79 +4023,6 @@
       document.getElementById('onboardingModal').classList.remove('show');
       localStorage.setItem('onboarding_seen', 'true');
     }
-  </script>
-  <!-- Update Log Modal -->
-  <div id="updateLogModal"
-    class="fixed inset-0 z-[250] hidden items-center justify-center p-6 bg-slate-950/80 backdrop-blur-sm">
-    <div class="glass w-full max-w-md rounded-3xl overflow-hidden border border-white/10 shadow-2xl fade-in">
-      <div class="p-6 border-b border-white/5 flex items-center justify-between bg-white/5">
-        <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg bg-sky-500/10 flex items-center justify-center text-sky-400">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-          </div>
-          <h3 class="font-bold text-white text-sm uppercase tracking-tight">Recent Updates</h3>
-        </div>
-        <button onclick="closeUpdateLog()" class="p-2 hover:bg-white/5 rounded-xl transition-colors">
-          <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
-      </div>
-      <div class="p-6 max-h-[400px] overflow-y-auto space-y-6">
-        <div id="updateLogList" class="space-y-6">
-          <!-- Updates will be injected here -->
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const updateLog = JSON.parse('<?= updateLog ?>');
-    const SOURCE_REPO_BASE = 'https://github.com/samuelfeng510/AWT-Demo-Engine-V2';
-
-    function openUpdateLog() {
-      const list = document.getElementById('updateLogList');
-      list.innerHTML = updateLog.map(item => {
-        const isCommitHash = /^[a-f0-9]{7}$/.test(item.version);
-        const versionDisplay = isCommitHash ?
-          `<a href="${SOURCE_REPO_BASE}/commit/${item.version}" target="_blank" rel="noopener noreferrer" class="hover:text-white hover:underline transition-all underline-offset-4 decoration-sky-500/50">${item.version}</a>` :
-          item.version;
-
-        return `
-          <div class="relative pl-6 pb-6 border-l border-white/5 last:border-0 last:pb-0">
-            <div class="absolute -left-[4.5px] top-1.5 w-2 h-2 rounded-full bg-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.5)]"></div>
-            <div class="flex items-center justify-between mb-1">
-              <span class="text-[11px] font-bold text-sky-400 font-mono">${versionDisplay}</span>
-              <span class="text-[9px] text-gray-500 uppercase tracking-widest font-medium">${item.date}</span>
-            </div>
-            <p class="text-[12px] text-gray-300 leading-relaxed">${item.note}</p>
-          </div>
-        `;
-      }).join('');
-
-      const modal = document.getElementById('updateLogModal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
-
-    function closeUpdateLog() {
-      const modal = document.getElementById('updateLogModal');
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-    }
-
-    // Close on escape
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeUpdateLog();
-    });
-
-    // Close on click outside
-    document.getElementById('updateLogModal').addEventListener('click', (e) => {
-      if (e.target === document.getElementById('updateLogModal')) closeUpdateLog();
-    });
   </script>
 </body>
 
