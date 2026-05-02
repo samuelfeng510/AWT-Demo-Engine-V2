@@ -1,0 +1,23 @@
+# Local secrets and credentials — never commit these
+.env
+.env.*
+*.pem
+*.p12
+*-credentials.json
+*credentials*.json
+service-account*.json
+vertex-sa.json
+*-sa.json
+client_secret*.json
+.workspace_gmail_creds*.json
+.gmail_oauth*.json
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Archives or accidental exports that might contain keys
+*.zip
+*.tgz

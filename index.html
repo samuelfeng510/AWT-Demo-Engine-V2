@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 
 <head>
   <meta charset="UTF-8">
@@ -514,24 +514,227 @@
       color: #ef4444;
       fill: #ef4444;
     }
+
+    /* ---------- Light theme (toggle via html[data-theme="light"]) ---------- */
+    [data-theme="light"] {
+      color-scheme: light;
+    }
+
+    [data-theme="light"] body.gradient-bg {
+      background: linear-gradient(145deg, #ffffff 0%, #f1f5f9 45%, #e2e8f0 100%) !important;
+      color: #0f172a;
+    }
+
+    [data-theme="light"] .glass {
+      background: rgba(255, 255, 255, 0.92) !important;
+      border-color: rgba(15, 23, 42, 0.08) !important;
+      box-shadow: 0 8px 32px rgba(15, 23, 42, 0.08) !important;
+    }
+
+    [data-theme="light"] .gradient-bg {
+      background: linear-gradient(145deg, #ffffff 0%, #f1f5f9 50%, #e2e8f0 100%) !important;
+    }
+
+    [data-theme="light"] .nav-item {
+      color: #475569;
+    }
+
+    [data-theme="light"] .nav-item:hover {
+      background: rgba(14, 165, 233, 0.08);
+      color: #0f172a;
+    }
+
+    [data-theme="light"] .nav-item.active {
+      background: rgba(14, 165, 233, 0.12);
+      border-color: rgba(14, 165, 233, 0.35);
+      color: #0369a1;
+      box-shadow: 0 4px 12px rgba(14, 165, 233, 0.12);
+    }
+
+    [data-theme="light"] .idea-chip:hover {
+      color: #0f172a;
+      border-color: #0ea5e9;
+      background: rgba(14, 165, 233, 0.12);
+    }
+
+    [data-theme="light"] .log-line {
+      color: #475569;
+    }
+
+    [data-theme="light"] .log-ts {
+      color: #64748b;
+    }
+
+    [data-theme="light"] .tooltip-content {
+      background: #ffffff;
+      color: #0f172a;
+      border-color: rgba(15, 23, 42, 0.12);
+      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.15);
+    }
+
+    [data-theme="light"] .tooltip-content::after {
+      border-color: #ffffff transparent transparent transparent;
+    }
+
+    [data-theme="light"] .zoom-container {
+      background: rgba(241, 245, 249, 0.95);
+      border-color: rgba(15, 23, 42, 0.08);
+    }
+
+    [data-theme="light"] .zoom-btn:hover {
+      background: #e2e8f0;
+      color: #0369a1;
+      border-color: rgba(14, 165, 233, 0.45);
+    }
+
+    [data-theme="light"] #onboardingModal {
+      background: rgba(248, 250, 252, 0.85);
+    }
+
+    [data-theme="light"] #erDiagramContainer {
+      background: rgba(241, 245, 249, 0.9);
+    }
+
+    [data-theme="light"] .diagram-tooltip {
+      background: #ffffff;
+      color: #0f172a;
+      border-color: rgba(14, 165, 233, 0.35);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+    }
+
+    [data-theme="light"] .demo-card {
+      border-color: rgba(15, 23, 42, 0.08);
+      background: rgba(255, 255, 255, 0.85);
+    }
+
+    [data-theme="light"] .demo-card:hover {
+      background: #ffffff;
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+
+    [data-theme="light"] .tab-btn {
+      color: #64748b;
+    }
+
+    [data-theme="light"] .tab-btn.active {
+      color: #0369a1;
+    }
+
+    [data-theme="light"] .tab-btn.active::after {
+      background: #0ea5e9;
+      box-shadow: 0 0 8px rgba(14, 165, 233, 0.35);
+    }
+
+    /* Tailwind utility overrides (light) */
+    [data-theme="light"] .text-gray-100 { color: #0f172a !important; }
+    [data-theme="light"] .text-gray-200 { color: #1e293b !important; }
+    [data-theme="light"] .text-gray-300 { color: #334155 !important; }
+    [data-theme="light"] .text-gray-400 { color: #475569 !important; }
+    [data-theme="light"] .text-gray-500 { color: #64748b !important; }
+    [data-theme="light"] .text-gray-600 { color: #64748b !important; }
+    /* Keep .text-white on colored buttons/badges — do not force to slate */
+    [data-theme="light"] .text-sky-200 { color: #075985 !important; }
+    [data-theme="light"] .text-sky-300 { color: #0369a1 !important; }
+    [data-theme="light"] .text-sky-400 { color: #0284c7 !important; }
+    [data-theme="light"] .text-sky-400\/80 { color: rgba(2, 132, 199, 0.85) !important; }
+    [data-theme="light"] .text-emerald-100 { color: #064e3b !important; }
+    [data-theme="light"] .text-emerald-300 { color: #047857 !important; }
+    [data-theme="light"] .text-emerald-400 { color: #059669 !important; }
+    [data-theme="light"] .text-red-400 { color: #dc2626 !important; }
+    [data-theme="light"] .placeholder-gray-600::placeholder { color: #94a3b8 !important; }
+
+    [data-theme="light"] .from-white { --tw-gradient-from: #0f172a !important; }
+    [data-theme="light"] .to-gray-400 { --tw-gradient-to: #475569 !important; }
+
+    [data-theme="light"] .border-white\/5 { border-color: rgba(15, 23, 42, 0.06) !important; }
+    [data-theme="light"] .border-white\/10 { border-color: rgba(15, 23, 42, 0.1) !important; }
+    [data-theme="light"] .border-white\/20 { border-color: rgba(15, 23, 42, 0.14) !important; }
+    [data-theme="light"] .border-gray-600 { border-color: #cbd5e1 !important; }
+    [data-theme="light"] .border-gray-700 { border-color: #cbd5e1 !important; }
+    [data-theme="light"] .border-gray-700\/50 { border-color: rgba(148, 163, 184, 0.6) !important; }
+
+    [data-theme="light"] .bg-black\/40,
+    [data-theme="light"] .bg-black\/80,
+    [data-theme="light"] .bg-black\/30,
+    [data-theme="light"] .bg-black\/20,
+    [data-theme="light"] .bg-black\/25,
+    [data-theme="light"] .bg-black\/35,
+    [data-theme="light"] .bg-black\/60 {
+      background-color: rgba(241, 245, 249, 0.96) !important;
+    }
+
+    [data-theme="light"] .hover\:bg-black\/60:hover {
+      background-color: rgba(226, 232, 240, 0.98) !important;
+    }
+
+    [data-theme="light"] .bg-white\/5 { background-color: rgba(255, 255, 255, 0.95) !important; }
+    [data-theme="light"] .bg-white\/\[0\.03\] { background-color: rgba(248, 250, 252, 0.98) !important; }
+    [data-theme="light"] .bg-gray-700 { background-color: #e2e8f0 !important; }
+    [data-theme="light"] .bg-gray-700\/30 { background-color: rgba(226, 232, 240, 0.85) !important; }
+    [data-theme="light"] .bg-gray-800\/50 { background-color: #f8fafc !important; }
+    [data-theme="light"] .bg-gray-900\/50,
+    [data-theme="light"] .bg-gray-900\/60 {
+      background-color: #f8fafc !important;
+    }
+
+    [data-theme="light"] .bg-sky-500\/10 { background-color: rgba(14, 165, 233, 0.12) !important; }
+    [data-theme="light"] .bg-emerald-500\/15 { background-color: rgba(16, 185, 129, 0.12) !important; }
+    [data-theme="light"] .bg-emerald-500\/5 { background-color: rgba(16, 185, 129, 0.08) !important; }
+    [data-theme="light"] .ring-white\/5 { --tw-ring-color: rgba(15, 23, 42, 0.06) !important; }
+
+    [data-theme="light"] #themeToggleBtn {
+      color: #475569;
+      border-color: rgba(15, 23, 42, 0.1);
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    [data-theme="light"] #themeToggleBtn:hover {
+      color: #0f172a;
+      background: #f1f5f9;
+    }
+
+    [data-theme="light"] .awt-nav-collapse:hover {
+      color: #0f172a !important;
+    }
+
+    /* Step section title: white in dark mode, black in light mode */
+    .step-title-theme {
+      color: #ffffff;
+    }
+
+    [data-theme="light"] .step-title-theme {
+      color: #1e293b; /* slate-800 — dark grey, not pure black */
+    }
+
+    /* Adaptive copy: dark → white, light → slate (reuse across gallery + demo preview) */
+    .text-theme-adaptive {
+      color: #ffffff;
+    }
+
+    [data-theme="light"] .text-theme-adaptive {
+      color: #1e293b;
+    }
+
+    .text-theme-adaptive-desc {
+      color: #ffffff;
+    }
+
+    [data-theme="light"] .text-theme-adaptive-desc {
+      color: #334155; /* slate-700 — body / summary on light background */
+    }
   </style>
 </head>
 
 <body class="gradient-bg min-h-screen text-gray-100 font-inter">
-  <div
-    class="fixed left-4 bottom-4 z-40 max-w-[16rem] sm:max-w-xs pointer-events-none select-none pr-2 sm:pr-0"
-    role="contentinfo"
-    aria-label="Developer credit">
-    <div
-      class="pointer-events-auto glass rounded-xl px-3 py-2.5 border border-white/10 shadow-lg bg-slate-900/80 text-left">
-      <p class="text-[9px] text-gray-500 leading-relaxed">
-        <span class="text-gray-300">APAC App Team</span><br>
-        <span class="text-gray-500">(Modified from </span><a href="https://github.com/ryotat7/ge-demo-generator"
-          target="_blank" rel="noopener noreferrer"
-          class="text-sky-500/90 hover:text-sky-400 underline decoration-sky-500/30 underline-offset-2">Ryota Tokodai&rsquo;s GE Demo Generator</a><span class="text-gray-500">)</span>
-      </p>
-    </div>
-  </div>
+  <script>
+    (function () {
+      try {
+        if (localStorage.getItem('awt_theme') === 'light') {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      } catch (e) { /* ignore */ }
+    })();
+  </script>
   <div class="max-w-[1780px] mx-auto flex justify-center gap-x-6 h-screen overflow-hidden relative">
     <!-- Floating Sidebar Toggles (Visible when sidebars are closed) -->
     <button id="leftToggle" onclick="toggleLeftSidebar()"
@@ -545,14 +748,32 @@
     <aside id="leftSidebar"
       class="w-64 my-6 hidden lg:flex flex-col glass rounded-3xl overflow-hidden shadow-2xl sidebar-transition z-20">
       <div class="p-6 h-full flex flex-col overflow-y-auto no-scrollbar">
-        <div class="flex items-center justify-between mb-6 px-3">
+        <div class="flex items-center justify-between mb-6 px-3 gap-2">
           <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Navigation</h3>
-          <button onclick="toggleLeftSidebar()" class="text-gray-500 hover:text-white transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7">
-              </path>
-            </svg>
-          </button>
+          <div class="flex items-center gap-1 shrink-0">
+            <button type="button" id="themeToggleBtn" onclick="toggleAwtTheme()"
+              class="p-2 rounded-xl border border-white/10 text-gray-400 hover:text-sky-400 transition-colors"
+              title="Switch theme" aria-label="Toggle light or dark theme">
+              <svg id="iconThemeSun" class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+              <svg id="iconThemeMoon" class="w-4 h-4 text-slate-500 hidden" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            </button>
+            <button type="button" onclick="toggleLeftSidebar()"
+              class="awt-nav-collapse text-gray-500 hover:text-white transition-colors p-2"
+              aria-label="Collapse navigation">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7">
+                </path>
+              </svg>
+            </button>
+          </div>
         </div>
         <div class="space-y-4 flex-grow">
           <a href="#section-step1" class="nav-item active" data-section="section-step1">
@@ -579,7 +800,8 @@
             <div class="nav-dot"></div>
             About this toolkit
           </button>
-          <a href="https://github.com/ryotat7/ge-demo-generator/blob/main/README.md" target="_blank"
+          <a href="https://github.com/samuelfeng510/AWT-Demo-Engine-V2/blob/main/README.md" target="_blank"
+            rel="noopener noreferrer"
             class="nav-item w-full text-left flex items-center">
             <div class="nav-dot"></div>
             <svg class="w-3.5 h-3.5 mr-1.5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -594,8 +816,17 @@
 
         <!-- Sidebar Footer: Author, Version & Update -->
         <div class="pt-6 mt-auto border-t border-white/5 space-y-4">
-
-
+          <div class="px-3" role="contentinfo" aria-label="Developer credit">
+            <p class="text-[8px] text-gray-500 leading-relaxed">
+              <span class="text-gray-300 font-medium">Workspace APAC Team</span><br>
+              <a href="https://github.com/samuelfeng510/AWT-Demo-Engine-V2" target="_blank" rel="noopener noreferrer"
+                class="text-sky-500/90 hover:text-sky-400 underline decoration-sky-500/30 underline-offset-2 font-medium">Source:
+                AWT-Demo-Engine-V2</a><br>
+              <span class="text-gray-500">Fork lineage: </span><a
+                href="https://github.com/ryotat7/ge-demo-generator" target="_blank" rel="noopener noreferrer"
+                class="text-sky-500/90 hover:text-sky-400 underline decoration-sky-500/30 underline-offset-2">Ryota Tokodai&rsquo;s GE Demo Generator</a>
+            </p>
+          </div>
 
           <div class="px-3 py-3 bg-white/5 rounded-2xl border border-white/5">
             <div class="flex items-center justify-between">
@@ -641,9 +872,9 @@
           </h1>
           <p class="text-gray-400 text-lg text-center lg:text-left mx-auto lg:mx-0 leading-relaxed font-light">
             Instantly generate <b>custom demo environments</b> for any business domain. This tool <b>dynamically
-              synthesizes datasets</b>, configures AI agents tailored to your client's unique challenges, and integrates
-            seamlessly with <b>Google Workspace</b> — including Docs, Sheets, Drive, and Gmail — to deliver end-to-end
-            workflow automation demos.
+              synthesizes datasets</b>, configures AI agents tailored to your client's unique challenges, and can tie in
+            <b>Google Workspace</b> — Docs, Sheets, Drive, and Gmail — when you enable Workspace functions for end-to-end
+            workflow demos.
             <button onclick="toggleArchitecture()"
               class="inline-flex items-center gap-1 text-sky-400/70 hover:text-sky-400 transition-colors ml-1 font-medium group">
               <span class="border-b border-sky-400/30 group-hover:border-sky-400 leading-none pb-0.5">How it
@@ -666,110 +897,171 @@
                         d="M13 10V3L4 14h7v7l9-11h-7z">
                       </path>
                     </svg>
-                    Dynamic Data Generation & Analysis
+                    Generator: planning &amp; Drive kit
                   </h3>
                   <p class="text-[13px] text-gray-300 leading-relaxed mb-4">
-                    Unlike static templates, this accelerator <b>auto-generates data</b> based on the customer problem
-                    you
-                    input. It creates an orchestration between <b>BigQuery</b> macro-analytics and <b>Google Maps</b>
-                    real-world grounding.
+                    The backend (<b>Apps Script</b>) calls <b>Vertex AI</b> with your goal and dimension choices, then
+                    <b>validates</b> generated rows, assembles a <b>setup.sh</b>, and—when narration exists—<b>creates a
+                      Drive “demo” folder</b> (Google Doc from Markdown, synthetic <b>externalFiles</b> as blobs,
+                    link-shared). That matches <code class="text-sky-300/90">generateDemo</code> →
+                    <code class="text-sky-300/90">planAndGenerateData</code> → <code
+                      class="text-sky-300/90">validateGeneratedData</code> → <code
+                      class="text-sky-300/90">provisionDemoDriveKit_</code> → <code
+                      class="text-sky-300/90">generateSetupScript</code> in <code
+                      class="text-sky-300/90">Code.gs</code>.
                   </p>
                   <ul class="space-y-3">
                     <li class="text-[11px] text-gray-300 flex items-start gap-2">
                       <span class="text-sky-400 mt-0.5">•</span>
-                      <span><b>Contextual Data:</b> Dynamically generated demographics, sales history, and market
-                        trends.</span>
+                      <span><b>Demo length &amp; archetype</b> shape prompts and outputs: <b>Short / Medium / Long</b>
+                        and <b>triage &amp; response</b>, <b>data to insight</b>, or <b>complex orchestration</b>.</span>
                     </li>
                     <li class="text-[11px] text-gray-300 flex items-start gap-2">
                       <span class="text-sky-400 mt-0.5">•</span>
-                      <span><b>Tailored Reasoning:</b> A pre-configured agent with instructions specific to the business
-                        goal.</span>
+                      <span><b>Workspace (optional):</b> With <b>Turn on Google Workspace functions with the agent</b>,
+                        the plan includes <b>workspaceSeedData</b> embedded into <code
+                          class="text-sky-300/90">setup.sh</code>. Off keeps the story to <b>BigQuery + MCP + Drive
+                          files</b>.</span>
+                    </li>
+                    <li class="text-[11px] text-gray-300 flex items-start gap-2">
+                      <span class="text-sky-400 mt-0.5">•</span>
+                      <span><b>Artifacts:</b> Downloadable <code class="text-sky-300/90">setup.sh</code>,
+                        <code class="text-sky-300/90">DEMO_GUIDE_DOC_URL</code> /
+                        <code class="text-sky-300/90">DEMO_DRIVE_FOLDER_URL</code> when provisioning succeeds, plus
+                        scenario prompts in the UI.</span>
                     </li>
                   </ul>
                 </div>
 
-                <!-- Section 2: Agent Runtime Architecture -->
+                <!-- Section 2: Architecture diagram — generator vs runtime -->
                 <div class="pt-6">
-                  <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Agent Runtime Architecture
+                  <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Architecture (matches Code.gs)
                   </h3>
+                  <p class="text-[11px] text-gray-500 mb-4 leading-relaxed max-w-3xl">
+                    <b>Top:</b> what happens when you click generate (hosted Apps Script + Vertex + Drive kit).
+                    <b>Bottom:</b> what <code class="text-gray-400">setup.sh</code> prepares in <b>your</b> project—local
+                    <b>ADK</b> agent with hosted <b>MCP</b> toolsets for BigQuery and Maps (and optional Workspace seeding
+                    logic in the same script). The agent’s Gemini model id comes from the generated ADK config (defaults
+                    align with script properties).
+                  </p>
 
                   <div
-                    class="min-h-[350px] rounded-2xl bg-black/40 border border-white/5 overflow-hidden shadow-inner flex flex-col">
-                    <div class="p-6 flex-1 flex items-center justify-center">
-                      <svg id="archSvg" class="w-full h-auto max-w-[800px] select-none" viewBox="0 0 650 320"
-                        fill="none">
-                        <!-- Google Cloud Boundary -->
-                        <rect x="230" y="40" width="400" height="260" rx="20" fill="white" fill-opacity="0.03"
-                          stroke="white" stroke-opacity="0.1" stroke-width="1" stroke-dasharray="8 4" />
-                        <text x="245" y="65" fill="#f1f5f9" fill-opacity="0.5" font-family="Inter" font-size="12"
-                          font-weight="700">Google Cloud</text>
-
-                        <!-- Node: Agent Development Kit -->
-                        <rect x="20" y="130" width="200" height="60" rx="12" fill="#0ea5e9" fill-opacity="0.1"
+                    class="min-h-[420px] rounded-2xl bg-black/40 border border-white/5 overflow-hidden shadow-inner flex flex-col overflow-x-auto">
+                    <div class="p-4 sm:p-6 flex-1 flex items-center justify-center min-w-[320px]">
+                      <svg id="archSvg" class="w-full h-auto max-w-[840px] min-w-[620px] select-none"
+                        viewBox="0 0 660 478" fill="none" role="img"
+                        aria-label="Two-part diagram: Generator pipeline then runtime ADK and MCP">
+                        <title>Generator versus runtime architecture</title>
+                        <!-- 1 · Generator row -->
+                        <text x="22" y="18" fill="#94a3b8" font-family="Inter, system-ui, sans-serif" font-size="11"
+                          font-weight="700">1 · GENERATOR (this web app)</text>
+                        <rect x="18" y="30" width="78" height="38" rx="9" fill="#0ea5e9" fill-opacity="0.12"
                           stroke="#0ea5e9" stroke-width="1" />
-                        <text x="85" y="158" fill="#f1f5f9" font-family="Inter" font-size="11" font-weight="700">Agent
-                          Development Kit</text>
-                        <text x="85" y="172" fill="#94a3b8" font-family="Inter" font-size="9">Local Agent</text>
-                        <circle cx="50" cy="160" r="15" fill="white" fill-opacity="0.1" />
-                        <path d="M45 155 Q50 150 55 155 M45 165 Q50 170 55 165" stroke="#f1f5f9" stroke-width="1" />
+                        <text x="57" y="53" text-anchor="middle" fill="#f1f5f9" font-family="Inter, system-ui, sans-serif"
+                          font-size="10" font-weight="700">Browser</text>
+                        <path d="M98 49 H108 M104 45 L108 49 L104 53" stroke="#64748b" stroke-width="1.2" fill="none" />
+                        <rect x="114" y="28" width="92" height="42" rx="9" fill="white" fill-opacity="0.06"
+                          stroke="white" stroke-opacity="0.15" />
+                        <text x="160" y="48" text-anchor="middle" fill="#f1f5f9" font-size="9" font-weight="700">Apps
+                          Script</text>
+                        <text x="160" y="60" text-anchor="middle" fill="#94a3b8" font-size="8">GAS backend</text>
+                        <path d="M208 49 H218 M214 45 L218 49 L214 53" stroke="#64748b" stroke-width="1.2" fill="none" />
+                        <rect x="224" y="28" width="108" height="42" rx="9" fill="white" fill-opacity="0.06"
+                          stroke="#38bdf8" stroke-opacity="0.45" />
+                        <text x="278" y="48" text-anchor="middle" fill="#f1f5f9" font-size="9" font-weight="700">Vertex AI
+                        </text>
+                        <text x="278" y="60" text-anchor="middle" fill="#94a3b8" font-size="8">plan &amp; JSON</text>
+                        <path d="M336 49 H346 M342 45 L346 49 L342 53" stroke="#64748b" stroke-width="1.2" fill="none" />
+                        <rect x="352" y="24" width="132" height="50" rx="9" fill="white" fill-opacity="0.06"
+                          stroke="#34d399" stroke-opacity="0.45" />
+                        <text x="418" y="44" text-anchor="middle" fill="#f1f5f9" font-size="9" font-weight="700">Google
+                          Drive</text>
+                        <text x="418" y="56" text-anchor="middle" fill="#94a3b8" font-size="8">Demo / Doc + files</text>
+                        <text x="418" y="68" text-anchor="middle" fill="#94a3b8" font-size="8">share link</text>
+                        <path d="M418 74 V86" stroke="#475569" stroke-width="1" />
+                        <rect x="332" y="90" width="172" height="28" rx="14" fill="#1e293b" stroke="#64748b"
+                          stroke-width="1" />
+                        <text x="418" y="108" text-anchor="middle" fill="#e2e8f0" font-size="9" font-weight="700">→
+                          setup.sh + DEMO_* URLs</text>
+                        <text x="22" y="132" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="8">Rows
+                          validated · Markdown → Doc · externalFiles → blobs · optional workspaceSeedData</text>
+                        <path d="M418 118 L418 138" stroke="#0ea5e9" stroke-width="1.2" stroke-dasharray="5 4"
+                          opacity="0.7" />
+                        <text x="22" y="152" fill="#94a3b8" font-family="Inter, system-ui, sans-serif" font-size="11"
+                          font-weight="700">2 · RUNTIME (your GCP project after bash setup.sh)</text>
+                        <g transform="translate(0, 158)">
+                          <!-- Google Cloud Boundary -->
+                          <rect x="230" y="40" width="400" height="260" rx="20" fill="white" fill-opacity="0.03"
+                            stroke="white" stroke-opacity="0.1" stroke-width="1" stroke-dasharray="8 4" />
+                          <text x="245" y="65" fill="#f1f5f9" fill-opacity="0.5" font-family="Inter" font-size="12"
+                            font-weight="700">Google Cloud</text>
 
-                        <!-- Connections from ADK -->
-                        <g stroke="#334155" stroke-width="1.5">
-                          <path d="M220 160 L260 160" /> <!-- Main stem -->
-                          <path d="M260 160 L260 100 L290 100" /> <!-- To Gemini -->
-                          <path d="M260 160 L290 160" /> <!-- To BQ MCP -->
-                          <path d="M260 160 L260 250 L290 250" /> <!-- To Maps MCP -->
+                          <!-- Node: Agent Development Kit -->
+                          <rect x="20" y="130" width="200" height="60" rx="12" fill="#0ea5e9" fill-opacity="0.1"
+                            stroke="#0ea5e9" stroke-width="1" />
+                          <text x="85" y="158" fill="#f1f5f9" font-family="Inter" font-size="11" font-weight="700">Agent
+                            Development Kit</text>
+                          <text x="85" y="172" fill="#94a3b8" font-family="Inter" font-size="9">Local Agent</text>
+                          <circle cx="50" cy="160" r="15" fill="white" fill-opacity="0.1" />
+                          <path d="M45 155 Q50 150 55 155 M45 165 Q50 170 55 165" stroke="#f1f5f9" stroke-width="1" />
+
+                          <!-- Connections from ADK -->
+                          <g stroke="#334155" stroke-width="1.5">
+                            <path d="M220 160 L260 160" />
+                            <path d="M260 160 L260 100 L290 100" />
+                            <path d="M260 160 L290 160" />
+                            <path d="M260 160 L260 250 L290 250" />
+                          </g>
+
+                          <!-- Arrows for ADK connections -->
+                          <path d="M290 100 L284 97 M290 100 L284 103" stroke="#334155" stroke-width="1.5" />
+                          <path d="M290 160 L284 157 M290 160 L284 163" stroke="#334155" stroke-width="1.5" />
+                          <path d="M290 250 L284 247 M290 250 L284 253" stroke="#334155" stroke-width="1.5" />
+
+                          <!-- Connections to Targets -->
+                          <g stroke="#334155" stroke-width="1.5">
+                            <path d="M440 160 L490 160" />
+                            <path d="M470 250 L530 250" />
+                          </g>
+                          <path d="M490 160 L484 157 M490 160 L484 163" stroke="#334155" stroke-width="1.5" />
+                          <path d="M530 250 L524 247 M530 250 L524 253" stroke="#334155" stroke-width="1.5" />
+
+                          <!-- Node: Gemini -->
+                          <rect x="290" y="70" width="150" height="60" rx="12" fill="white" fill-opacity="0.05"
+                            stroke="white" stroke-opacity="0.2" />
+                          <text x="345" y="96" fill="#f1f5f9" font-family="Inter" font-size="11" font-weight="700">Gemini
+                            model</text>
+                          <text x="345" y="112" fill="#94a3b8" font-family="Inter" font-size="9">ADK / setup.sh</text>
+                          <path d="M310 90 L325 110 L310 110 L325 90 Z" fill="#38bdf8" fill-opacity="0.5" />
+
+                          <!-- Node: MCP Server BigQuery -->
+                          <rect x="290" y="140" width="150" height="60" rx="12" fill="#10b981" fill-opacity="0.1"
+                            stroke="#10b981" stroke-width="1" />
+                          <text x="345" y="165" fill="#f1f5f9" font-family="Inter" font-size="10" font-weight="700">MCP
+                            Server</text>
+                          <text x="345" y="178" fill="#f1f5f9" font-family="Inter" font-size="10" font-weight="700">for
+                            BigQuery</text>
+                          <circle cx="315" cy="170" r="12" fill="#10b981" fill-opacity="0.2" />
+
+                          <!-- Node: MCP Server Maps -->
+                          <rect x="290" y="220" width="180" height="60" rx="12" fill="#f59e0b" fill-opacity="0.1"
+                            stroke="#f59e0b" stroke-width="1" />
+                          <text x="345" y="245" fill="#f1f5f9" font-family="Inter" font-size="10" font-weight="700">MCP
+                            Server for Maps</text>
+                          <text x="345" y="258" fill="#94a3b8" font-family="Inter" font-size="9">Grounding Lite</text>
+
+                          <!-- Node: BigQuery Dataset -->
+                          <rect x="490" y="130" width="130" height="60" rx="12" fill="white" fill-opacity="0.05"
+                            stroke="white" stroke-opacity="0.1" />
+                          <text x="555" y="165" text-anchor="middle" fill="#f1f5f9" font-family="Inter" font-size="11"
+                            font-weight="700">BigQuery Dataset</text>
+
+                          <!-- Node: Maps APIs -->
+                          <rect x="530" y="220" width="100" height="60" rx="12" fill="white" fill-opacity="0.05"
+                            stroke="white" stroke-opacity="0.1" />
+                          <text x="580" y="255" text-anchor="middle" fill="#f1f5f9" font-family="Inter" font-size="10"
+                            font-weight="700">Maps APIs</text>
                         </g>
-
-                        <!-- Arrows for ADK connections -->
-                        <path d="M290 100 L284 97 M290 100 L284 103" stroke="#334155" stroke-width="1.5" />
-                        <path d="M290 160 L284 157 M290 160 L284 163" stroke="#334155" stroke-width="1.5" />
-                        <path d="M290 250 L284 247 M290 250 L284 253" stroke="#334155" stroke-width="1.5" />
-
-                        <!-- Connections to Targets -->
-                        <g stroke="#334155" stroke-width="1.5">
-                          <path d="M440 160 L490 160" /> <!-- BQ MCP to Dataset -->
-                          <path d="M470 250 L530 250" /> <!-- Maps MCP to API -->
-                        </g>
-                        <path d="M490 160 L484 157 M490 160 L484 163" stroke="#334155" stroke-width="1.5" />
-                        <path d="M530 250 L524 247 M530 250 L524 253" stroke="#334155" stroke-width="1.5" />
-
-                        <!-- Node: Gemini -->
-                        <rect x="290" y="70" width="150" height="60" rx="12" fill="white" fill-opacity="0.05"
-                          stroke="white" stroke-opacity="0.2" />
-                        <text x="345" y="98" fill="#f1f5f9" font-family="Inter" font-size="11" font-weight="700">Gemini
-                          3
-                          Pro</text>
-                        <text x="345" y="112" fill="#94a3b8" font-family="Inter" font-size="9">Vertex AI</text>
-                        <path d="M310 90 L325 110 L310 110 L325 90 Z" fill="#38bdf8" fill-opacity="0.5" />
-
-                        <!-- Node: MCP Server BigQuery -->
-                        <rect x="290" y="140" width="150" height="60" rx="12" fill="#10b981" fill-opacity="0.1"
-                          stroke="#10b981" stroke-width="1" />
-                        <text x="345" y="165" fill="#f1f5f9" font-family="Inter" font-size="10" font-weight="700">MCP
-                          Server</text>
-                        <text x="345" y="178" fill="#f1f5f9" font-family="Inter" font-size="10" font-weight="700">for
-                          BigQuery</text>
-                        <circle cx="315" cy="170" r="12" fill="#10b981" fill-opacity="0.2" />
-
-                        <!-- Node: MCP Server Maps -->
-                        <rect x="290" y="220" width="180" height="60" rx="12" fill="#f59e0b" fill-opacity="0.1"
-                          stroke="#f59e0b" stroke-width="1" />
-                        <text x="345" y="245" fill="#f1f5f9" font-family="Inter" font-size="10" font-weight="700">MCP
-                          Server for Maps</text>
-                        <text x="345" y="258" fill="#94a3b8" font-family="Inter" font-size="9">Grounding Lite</text>
-
-                        <!-- Node: BigQuery Dataset -->
-                        <rect x="490" y="130" width="130" height="60" rx="12" fill="white" fill-opacity="0.05"
-                          stroke="white" stroke-opacity="0.1" />
-                        <text x="555" y="165" text-anchor="middle" fill="#f1f5f9" font-family="Inter" font-size="11"
-                          font-weight="700">BigQuery Dataset</text>
-
-                        <!-- Node: Maps APIs -->
-                        <rect x="530" y="220" width="100" height="60" rx="12" fill="white" fill-opacity="0.05"
-                          stroke="white" stroke-opacity="0.1" />
-                        <text x="580" y="255" text-anchor="middle" fill="#f1f5f9" font-family="Inter" font-size="10"
-                          font-weight="700">Maps APIs</text>
                       </svg>
                     </div>
                   </div>
@@ -777,12 +1069,32 @@
 
                 <!-- Section 3: Deep Dive Resources -->
                 <div class="pt-6">
-                  <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-                    <div class="aspect-video w-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
-                      <iframe class="w-full h-full" src="https://www.youtube.com/embed/wzccErUYhTI"
-                        title="Architecture Deep Dive" frameborder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        allowfullscreen></iframe>
+                  <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+                    <div
+                      class="rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900/80 to-slate-950/80 p-6 shadow-xl">
+                      <p class="text-[10px] font-bold text-sky-400 uppercase tracking-widest mb-3">Source &amp; docs</p>
+                      <p class="text-[13px] text-gray-300 leading-relaxed mb-4">
+                        Open source under <b class="text-slate-200">AWT Demo Engine V2</b>. Clone or star the repo; there are
+                        <b>no API keys in source</b>—only Script Properties and user-run <code
+                          class="text-sky-300/90">setup.sh</code> create credentials in your GCP project.
+                      </p>
+                      <a href="https://github.com/samuelfeng510/AWT-Demo-Engine-V2" target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-sky-500/15 border border-sky-500/30 hover:bg-sky-500/25 text-[12px] font-bold text-sky-300 transition-all mb-3">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path fill-rule="evenodd"
+                            d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+                            clip-rule="evenodd" />
+                        </svg>
+                        <span>AWT-Demo-Engine-V2 on GitHub</span>
+                        <svg class="w-4 h-4 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M14 5l7 7m0 0l-7 7m7-7H3">
+                          </path>
+                        </svg>
+                      </a>
+                      <p class="text-[11px] text-gray-500 leading-relaxed">README lists Script Properties to configure for
+                        deployment—never commit service account JSON as files.</p>
                     </div>
                     <div>
                       <h3 class="text-xs font-bold text-sky-400 uppercase tracking-widest mb-4 flex items-center gap-2">
@@ -790,16 +1102,34 @@
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                         </svg>
-                        Deep Dive Resources
+                        References
                       </h3>
                       <p class="text-[13px] text-gray-300 leading-relaxed mb-6">
-                        Looking for more details? Explore the complete walkthrough of this project and the underlying
-                        ADK
-                        Framework.
+                        Pattern lineage: enterprise workflow layers on the <b>GE Demo Generator</b> + MCP reference apps.
                       </p>
+                      <a href="https://github.com/samuelfeng510/AWT-Demo-Engine-V2/blob/main/README.md" target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-[12px] font-bold text-sky-400 transition-all mb-3 w-full sm:w-auto justify-center">
+                        <span>README (this project)</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M14 5l7 7m0 0l-7 7m7-7H3">
+                          </path>
+                        </svg>
+                      </a>
+                      <a href="https://github.com/ryotat7/ge-demo-generator" target="_blank" rel="noopener noreferrer"
+                        class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-[12px] font-bold text-sky-400 transition-all mb-3 w-full sm:w-auto justify-center">
+                        <span>GE Demo Generator (upstream)</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M14 5l7 7m0 0l-7 7m7-7H3">
+                          </path>
+                        </svg>
+                      </a>
                       <a href="https://github.com/google/mcp/tree/main/examples/launchmybakery" target="_blank"
-                        class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-[12px] font-bold text-sky-400 transition-all">
-                        <span>Read "MCP Launch My Bakery Example"</span>
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-[12px] font-bold text-sky-400 transition-all w-full sm:w-auto justify-center">
+                        <span>MCP Launch My Bakery example</span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M14 5l7 7m0 0l-7 7m7-7H3">
@@ -819,7 +1149,7 @@
             <span
               class="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-500 text-white font-bold shadow-lg shadow-sky-500/40">1</span>
             <div>
-              <h2 class="text-xl font-bold text-white uppercase tracking-tight">Step 1: Define Business Challenge</h2>
+              <h2 class="step-title-theme text-xl font-bold uppercase tracking-tight">Step 1: Define Business Challenge</h2>
               <p class="text-[11px] text-gray-500">Select a template or describe your customer's problem</p>
             </div>
           </div>
@@ -842,7 +1172,7 @@
                       d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                   </svg>
                 </div>
-                <h3 class="text-xl font-bold text-white mb-2">Pick from Gallery</h3>
+                <h3 class="text-xl font-bold text-theme-adaptive mb-2">Pick from Gallery</h3>
                 <p class="text-[12px] text-gray-400 leading-relaxed">Choose from pre-built scenarios across 6 industries
                   and job functions.</p>
                 <div class="mt-6 flex items-center gap-2 text-sky-400 text-[10px] font-bold uppercase tracking-widest">
@@ -871,7 +1201,7 @@
                       d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
                 </div>
-                <h3 class="text-xl font-bold text-white mb-2">Start from Scratch</h3>
+                <h3 class="text-xl font-bold text-theme-adaptive mb-2">Start from Scratch</h3>
                 <p class="text-[12px] text-gray-400 leading-relaxed">Describe your own unique business challenge and
                   requirements directly.</p>
                 <div
@@ -939,15 +1269,17 @@
               <div class="xl:col-span-7">
                 <div id="demoDimensionPreviewCard"
                   class="h-full min-h-[14rem] rounded-2xl border border-white/10 bg-gradient-to-br from-sky-500/[0.07] via-black/20 to-emerald-500/[0.07] p-5 flex flex-col shadow-inner ring-1 ring-white/5">
-                  <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2">What you are configuring</p>
-                  <h3 id="demoPreviewHeadline" class="text-sm font-bold text-white leading-snug mb-1">—</h3>
-                  <p id="demoPreviewArcheSummary" class="text-[11px] text-sky-200/90 leading-relaxed mb-4">—</p>
+                  <p class="text-[9px] font-bold text-theme-adaptive uppercase tracking-widest mb-2">What you are configuring</p>
+                  <h3 id="demoPreviewHeadline" class="text-sm font-bold text-theme-adaptive leading-snug mb-1">—</h3>
+                  <p id="demoPreviewArcheSummary" class="text-[11px] text-theme-adaptive-desc leading-relaxed mb-4">—</p>
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
-                    <div class="rounded-xl bg-black/35 border border-sky-500/15 p-3">
+                    <div id="demoPreviewGcpCol"
+                      class="rounded-xl bg-black/35 border border-sky-500/15 p-3 sm:col-span-2">
                       <p class="text-[9px] font-bold text-sky-400 uppercase tracking-widest mb-2">Cloud &amp; data plane</p>
                       <ul id="demoPreviewGcpList" class="text-[10px] text-gray-300 space-y-1.5 list-none pl-0"></ul>
                     </div>
-                    <div id="demoPreviewWorkspaceCol" class="rounded-xl bg-black/35 border border-emerald-500/15 p-3">
+                    <div id="demoPreviewWorkspaceCol"
+                      class="hidden rounded-xl bg-black/35 border border-emerald-500/15 p-3">
                       <p class="text-[9px] font-bold text-emerald-400 uppercase tracking-widest mb-2">Workspace &amp; agent tools</p>
                       <ul id="demoPreviewWorkspaceList" class="text-[10px] text-gray-300 space-y-1.5 list-none pl-0"></ul>
                     </div>
@@ -1056,7 +1388,8 @@
                 <div class="relative">
                   <input id="enableWorkspaceTools" type="checkbox" class="sr-only peer" onchange="refreshDemoDimensionPreview()">
                   <div
-                    class="w-10 h-5 bg-gray-700 rounded-full peer peer-checked:bg-emerald-600 transition-all after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5">
+                    class="w-10 h-5 bg-red-600 rounded-full peer peer-checked:bg-emerald-600 transition-all after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5"
+                    aria-hidden="true">
                   </div>
                 </div>
                 <span
@@ -1307,7 +1640,7 @@
             <div class="flex items-center gap-3 mb-8">
               <span
                 class="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-500 text-white font-bold shadow-lg shadow-sky-500/40">2</span>
-              <h2 class="text-xl font-bold text-white uppercase tracking-tight">Step 2: Review</h2>
+              <h2 class="step-title-theme text-xl font-bold uppercase tracking-tight">Step 2: Review</h2>
             </div>
 
             <!-- System Instruction -->
@@ -1394,11 +1727,11 @@
                 <span
                   class="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-white font-bold text-xl shadow-lg shadow-emerald-500/40">3</span>
                 <div>
-                  <h2 class="text-2xl font-bold text-white uppercase tracking-tight">Step 3: Deploy</h2>
+                  <h2 class="step-title-theme text-2xl font-bold uppercase tracking-tight">Step 3: Deploy</h2>
                   <p class="text-[11px] text-gray-500">Run the synthesized environment in your own GCP project</p>
                 </div>
               </div>
-              <a href="https://shell.cloud.google.com/cloudshell/editor?cloudshell_tutorial=tutorial.md&cloudshell_git_repo=https://github.com/ryotat7/ge-demo-generator.git"
+              <a href="https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/samuelfeng510/AWT-Demo-Engine-V2.git"
                 target="_blank" rel="noopener noreferrer"
                 class="px-4 py-2 bg-sky-600/80 hover:bg-sky-500 text-white font-bold rounded-xl text-[10px] transition-all shadow-lg flex items-center gap-2 uppercase tracking-wider border border-sky-400/20 hover:scale-105">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1658,7 +1991,7 @@
             <span
               class="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-white font-bold text-xl shadow-lg shadow-emerald-500/40">4</span>
             <div>
-              <h2 class="text-2xl font-bold text-white uppercase tracking-tight">Step 4: Run Live Demo</h2>
+              <h2 class="step-title-theme text-2xl font-bold uppercase tracking-tight">Step 4: Run Live Demo</h2>
               <p class="text-[11px] text-gray-500">Engage with your agent using personalized scenarios</p>
             </div>
           </div>
@@ -1680,7 +2013,7 @@
                   </svg>
                 </div>
                 <div>
-                  <h3 class="text-sm font-bold text-white uppercase tracking-tight">How to manage the local host demo
+                  <h3 class="step-title-theme text-sm font-bold uppercase tracking-tight">How to manage the local host demo
                   </h3>
                   <p class="text-[10px] text-gray-500">Authentication required & local environment commands</p>
                 </div>
@@ -1844,7 +2177,7 @@
                 </svg>
               </span>
               <div>
-                <h3 class="text-sm font-bold text-white uppercase tracking-tight">External Domain Files</h3>
+                <h3 class="step-title-theme text-sm font-bold uppercase tracking-tight">External Domain Files</h3>
                 <p class="text-[10px] text-gray-500">Download these files and upload them to the agent chat if required
                 </p>
               </div>
@@ -1884,6 +2217,36 @@
 
   <script>
     let currentData = null;
+
+    function getAwtTheme() {
+      return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+    }
+
+    function setAwtTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme === 'light' ? 'light' : 'dark');
+      try {
+        localStorage.setItem('awt_theme', theme === 'light' ? 'light' : 'dark');
+      } catch (e) { /* ignore */ }
+      syncAwtThemeToggle();
+    }
+
+    function toggleAwtTheme() {
+      setAwtTheme(getAwtTheme() === 'light' ? 'dark' : 'light');
+    }
+
+    function syncAwtThemeToggle() {
+      const sun = document.getElementById('iconThemeSun');
+      const moon = document.getElementById('iconThemeMoon');
+      const t = getAwtTheme();
+      if (sun && moon) {
+        sun.classList.toggle('hidden', t === 'light');
+        moon.classList.toggle('hidden', t !== 'light');
+      }
+      const btn = document.getElementById('themeToggleBtn');
+      if (btn) {
+        btn.title = t === 'light' ? 'Switch to dark theme' : 'Switch to light theme';
+      }
+    }
 
     function toggleLeftSidebar() {
       const sidebar = document.getElementById('leftSidebar');
@@ -2030,6 +2393,7 @@
       const wsUl = document.getElementById('demoPreviewWorkspaceList');
       const lenNote = document.getElementById('demoPreviewLengthNote');
       const wsCol = document.getElementById('demoPreviewWorkspaceCol');
+      const gcpCol = document.getElementById('demoPreviewGcpCol');
 
       if (headline) headline.textContent = L.label + ' · ' + A.label;
       if (summary) summary.textContent = A.summary;
@@ -2039,14 +2403,15 @@
         gcpUl.innerHTML = DEMO_PREVIEW_GCP_CORE.map(demoPreviewLi_).join('');
       }
 
-      if (wsUl && wsCol) {
+      if (wsUl && wsCol && gcpCol) {
         if (workspaceOn) {
-          wsCol.classList.remove('opacity-50');
+          wsCol.classList.remove('hidden');
+          gcpCol.classList.remove('sm:col-span-2');
           wsUl.innerHTML = A.workspaceTools.map(demoPreviewLiEmerald_).join('');
         } else {
-          wsCol.classList.add('opacity-50');
-          wsUl.innerHTML = demoPreviewLiEmerald_('Turn on “Google Workspace functions” below to include Gmail, Docs, Sheets, Drive, and Chat in the generated setup + agent tools.') +
-            demoPreviewLiEmerald_('When off, the demo stays BigQuery + MCP + file downloads only.');
+          wsCol.classList.add('hidden');
+          gcpCol.classList.add('sm:col-span-2');
+          wsUl.innerHTML = '';
         }
       }
     }
@@ -2235,6 +2600,7 @@
       document.getElementById('usePublicDataset').checked = false;
       document.getElementById('enableWorkspaceTools').checked = false;
       togglePublicDatasetOverride();
+      refreshDemoDimensionPreview();
 
       // Scroll to top
       document.getElementById('section-step1').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -2801,7 +3167,7 @@
               <div>
                 <div class="flex items-center gap-2 mb-2">
                   <span class="text-xl">${fileIcon}</span>
-                  <span class="text-[12px] font-bold text-white font-mono break-all">${file.fileName}</span>
+                  <span class="text-[12px] font-bold text-theme-adaptive font-mono break-all">${file.fileName}</span>
                 </div>
                 <p class="text-[11px] text-gray-400 mb-3">${file.description || 'No description'}</p>
                 <div class="text-[10px] text-gray-500 mb-2">Type: ${fileTypeLabel}</div>
@@ -3398,6 +3764,7 @@
 
     window.onload = () => {
       console.log('App initialization...');
+      syncAwtThemeToggle();
       refreshDemoDimensionPreview();
 
       // Restore auto-saved input
@@ -3548,13 +3915,16 @@
             🚀</div>
           <div>
             <h4 class="text-sm font-bold text-gray-200 mb-1">What is this?</h4>
-            <p class="text-xs text-gray-400 leading-relaxed">A toolkit to <b>synthesize realistic business datasets</b>
-              and <b>agent instructions</b>, offering customization of sample data on top of the <a
-                href="https://github.com/google/mcp/tree/main/examples/launchmybakery" target="_blank"
-                class="text-sky-400 hover:underline font-bold">LaunchMyBakery</a> demo application. The demo agent
-              generates
-              <b>dynamic responses</b> using <b>BigQuery</b> and <b>Google Maps</b> via Google-hosted <b>MCP
-                servers</b>.
+            <p class="text-xs text-gray-400 leading-relaxed"><b>AWT Demo Engine</b> — source on <a
+                href="https://github.com/samuelfeng510/AWT-Demo-Engine-V2" target="_blank" rel="noopener noreferrer"
+                class="text-sky-400 hover:underline font-bold">GitHub</a>. Uses <b>Vertex AI</b> to plan <b>BigQuery</b>
+              data, <b>agent instructions</b>, Drive demo kit, and optional <b>Workspace seed data</b>. You set <b>demo
+                length</b>, <b>workflow archetype</b>, and <b>Google Workspace</b> tools. Pattern from <a
+                href="https://github.com/ryotat7/ge-demo-generator" target="_blank" rel="noopener noreferrer"
+                class="text-sky-400 hover:underline font-bold">GE Demo Generator</a>; live agent uses <b>MCP</b> for
+              BigQuery and Maps (<a href="https://github.com/google/mcp/tree/main/examples/launchmybakery"
+                target="_blank" rel="noopener noreferrer" class="text-sky-400 hover:underline font-bold">Launch My
+                Bakery</a> reference).
             </p>
           </div>
         </div>
@@ -3574,8 +3944,11 @@
             🛡️</div>
           <div>
             <h4 class="text-sm font-bold text-gray-200 mb-1">How it works</h4>
-            <p class="text-xs text-gray-400 leading-relaxed">This app <b>only generates a script</b>. To deploy, you'll
-              copy the script and run it in <b>your own Google Cloud Shell</b>. Your data stay in your project.</p>
+            <p class="text-xs text-gray-400 leading-relaxed">Generate outputs in your browser: a downloadable
+              <code class="text-gray-300">setup.sh</code> that provisions BigQuery and the local ADK agent, plus—when
+              generation succeeds—a <b>Demo</b> folder in Drive with a <b>demo guide</b> Google Doc, scenario prompts,
+              and file attachments. Copy <code class="text-gray-300">setup.sh</code> into <b>Cloud Shell</b> (or your
+              environment) and run it so everything stays in <b>your</b> GCP project.</p>
           </div>
         </div>
       </div>
@@ -3627,13 +4000,14 @@
 
   <script>
     const updateLog = JSON.parse('<?= updateLog ?>');
+    const SOURCE_REPO_BASE = 'https://github.com/samuelfeng510/AWT-Demo-Engine-V2';
 
     function openUpdateLog() {
       const list = document.getElementById('updateLogList');
       list.innerHTML = updateLog.map(item => {
         const isCommitHash = /^[a-f0-9]{7}$/.test(item.version);
         const versionDisplay = isCommitHash ?
-          `<a href="https://github.com/ryotat7/ge-demo-generator/commit/${item.version}" target="_blank" class="hover:text-white hover:underline transition-all underline-offset-4 decoration-sky-500/50">${item.version}</a>` :
+          `<a href="${SOURCE_REPO_BASE}/commit/${item.version}" target="_blank" rel="noopener noreferrer" class="hover:text-white hover:underline transition-all underline-offset-4 decoration-sky-500/50">${item.version}</a>` :
           item.version;
 
         return `

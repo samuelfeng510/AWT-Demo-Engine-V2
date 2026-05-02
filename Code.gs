@@ -1,8 +1,9 @@
 /**
- * GE Demo Generator - Backend
+ * AWT Demo Engine - Backend (Apps Script)
  *
- * Dynamically generates a portable AI agent demo environment
- * using BigQuery and Maps MCP servers.
+ * Dynamically generates a portable AI agent demo environment using Vertex AI,
+ * optional Drive demo kit provisioning, optional Workspace seeds in setup.sh,
+ * and BigQuery + Maps MCP servers in the generated runtime.
  */
 
 // ===========================================
@@ -17,7 +18,10 @@ const CONFIG = {
   LOG_SHEET_URL: SCRIPT_PROPS.getProperty('LOG_SHEET_URL'),
   MAX_RETRIES: 3,
   RETRY_DELAY_MS: 1000,
-  APP_VERSION: 'v1.0'
+  APP_VERSION: 'v1.0',
+  /** Public repo for GitHub commit feed in "What's New" (no auth; no secrets in repo). */
+  GITHUB_COMMITS_API:
+    'https://api.github.com/repos/samuelfeng510/AWT-Demo-Engine-V2/commits'
 };
 
 /** In-memory cache for service account access token (valid within a single execution). */
@@ -3453,7 +3457,7 @@ function executeWithRetry(fn) {
  * Fallbacks to static CONFIG.UPDATE_LOG if API fails.
  */
 function fetchGitLogs() {
-  const repoUrl = 'https://api.github.com/repos/ryotat7/ge-demo-generator/commits';
+  const repoUrl = CONFIG.GITHUB_COMMITS_API;
   try {
     const response = UrlFetchApp.fetch(repoUrl + '?per_page=10', {
       muteHttpExceptions: true,
