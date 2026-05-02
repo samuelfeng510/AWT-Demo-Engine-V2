@@ -1,7 +1,7 @@
 /**
  * GE Demo Generator - Backend
- * 
- * Dynamically generates a portable AI agent demo environment 
+ *
+ * Dynamically generates a portable AI agent demo environment
  * using BigQuery and Maps MCP servers.
  */
 
@@ -309,6 +309,7 @@ function generateDemo(userGoal, options = {}) {
     result.referenceDate = planResult.referenceDate;
     result.publicDatasetId = planResult.publicDatasetId;
     result.demoGuide = planResult.demoGuide;
+    result.demoGuideStoryboard = planResult.demoGuideStoryboard || {};
     result.demoGuideMarkdown = planResult.demoGuideMarkdown || '';
     result.workspaceSeedData = planResult.workspaceSeedData || {};
     result.externalFiles = planResult.externalFiles || [];
@@ -318,13 +319,13 @@ function generateDemo(userGoal, options = {}) {
     let demoDriveFolderUrl = '';
     try {
       var asmDocs = buildDemoGuideDocAssembly_(planResult);
-      var hasNar = asmDocs.narratorMarkdown && String(asmDocs.narratorMarkdown).trim().length > 0;
-      var hasApp = asmDocs.appendixPrompts && asmDocs.appendixPrompts.length > 0;
-      if (hasNar || hasApp) {
+      var mdNar = asmDocs.narratorMarkdown && String(asmDocs.narratorMarkdown).trim();
+      var hasScenes = !!(asmDocs.storyboard && asmDocs.storyboard.scenes && asmDocs.storyboard.scenes.length);
+      if (mdNar || hasScenes) {
         var kitDocs = provisionDemoDriveKit_(
           dirName,
+          asmDocs.storyboard || {},
           asmDocs.narratorMarkdown || '',
-          asmDocs.appendixPrompts || [],
           planResult.externalFiles || [],
           'Demo Guide & Script — ' + dirName
         );
@@ -547,6 +548,7 @@ function planAndGenerateData(userGoal, options) {
     publicDatasetId: parsed.publicDatasetId || options.publicDatasetId,
     oneSentenceSummary: parsed.oneSentenceSummary || null,
     demoGuide: planningExtras.demoGuideForUi,
+    demoGuideStoryboard: planningExtras.demoGuideStoryboard,
     demoGuideMarkdown: planningExtras.demoGuideMarkdown,
     workspaceSeedData: planningExtras.workspaceSeedData,
     externalFiles: parsed.externalFiles || [],
@@ -556,22 +558,24 @@ function planAndGenerateData(userGoal, options) {
 }
 
 /**
- * Maps new planning JSON keys (scenarioPrompts + markdown demoGuide) onto fields the web UI expects.
+ * Maps planning JSON keys onto fields expected by the web UI and doc pipeline.
  */
 function normalizePlanningPromptOutputs(parsed) {
-  let demoGuideMarkdown = '';
   const rawDg = parsed.demoGuide;
+  let demoGuideMarkdown = '';
   if (typeof rawDg === 'string') {
     demoGuideMarkdown = rawDg;
   } else if (Array.isArray(rawDg) && rawDg.length && typeof rawDg[0] === 'string') {
     demoGuideMarkdown = rawDg.join('\n\n---\n\n');
   }
 
+  var safeGuide = normalizeStoryboardGuide_(
+    rawDg && typeof rawDg === 'object' && !Array.isArray(rawDg) ? rawDg : null
+  );
+
   let demoGuideForUi = [];
   if (parsed.scenarioPrompts && Array.isArray(parsed.scenarioPrompts) && parsed.scenarioPrompts.length) {
     demoGuideForUi = parsed.scenarioPrompts;
-  } else if (Array.isArray(rawDg) && rawDg.length && typeof rawDg[0] === 'object') {
-    demoGuideForUi = rawDg;
   }
 
   let ws = parsed.workspaceSeedData;
@@ -581,9 +585,47 @@ function normalizePlanningPromptOutputs(parsed) {
 
   return {
     demoGuideMarkdown: demoGuideMarkdown,
+    demoGuideStoryboard: safeGuide,
     workspaceSeedData: ws || {},
     demoGuideForUi: demoGuideForUi
   };
+}
+
+function safeString_(value) {
+  if (value === null || value === undefined) return '';
+  return String(value).trim();
+}
+
+function normalizeStoryboardGuide_(rawGuide) {
+  var fallback = {
+    demoTitle: 'Generated Demo',
+    storyboardTitle: 'Storyboard',
+    intro: '',
+    scenes: []
+  };
+
+  if (!rawGuide || typeof rawGuide !== 'object' || Array.isArray(rawGuide)) return fallback;
+
+  var guide = {
+    demoTitle: safeString_(rawGuide.demoTitle) || fallback.demoTitle,
+    storyboardTitle: safeString_(rawGuide.storyboardTitle) || fallback.storyboardTitle,
+    intro: safeString_(rawGuide.intro),
+    scenes: []
+  };
+
+  var scenes = Array.isArray(rawGuide.scenes) ? rawGuide.scenes : [];
+  for (var i = 0; i < scenes.length; i++) {
+    var scene = scenes[i];
+    if (!scene || typeof scene !== 'object') continue;
+    guide.scenes.push({
+      sceneTitle: safeString_(scene.sceneTitle) || ('Scene ' + (guide.scenes.length + 1)),
+      voiceover: safeString_(scene.voiceover),
+      action: safeString_(scene.action),
+      prompt: safeString_(scene.prompt) || 'N/A'
+    });
+  }
+
+  return guide;
 }
 
 function buildPlanningPrompt(userGoal, options) {
@@ -610,18 +652,40 @@ function buildPlanningPrompt(userGoal, options) {
     complex_orchestration: 'Complex Orchestration: Emphasize multi-step operational flows (alert → analysis → workbook or doc synthesis → escalation / stakeholder ping). Seeds should cue several dependent actions across channels.'
   })[workflowArchetypeKey] || `Shape the storyline to workflow archetype "${workflowArchetypeKey}".`;
 
+  const workflowRoutingBlock = `
+## DYNAMIC WORKFLOW ROUTING (MANDATORY)
+
+You MUST dynamically structure the **demoGuide** Markdown based on the following parameters:
+
+**Length:** "${demoLengthKey}" — Short = **1–2** scenes (each scene is one \`## Scene ...\` section). Medium = **3–4** scenes. Long = **5+** scenes.
+
+**Archetype:** "${workflowArchetypeKey}".
+
+Apply the product flow that matches the archetype (use these rules strictly):
+
+- If **triage_response** (Triage & Response): the demo MUST **start in Gmail** (AI Inbox), **move to Google Docs** (Help me write), and **use Google Chat**. Scene order and titles MUST reflect this sequence.
+
+- If **data_to_insight** (Data to Insight): the demo MUST **start in BigQuery / Gemini Enterprise**, **move to Google Sheets** (Gemini side panel / Canvas), and **end in Google Slides** (Help me visualize / side panel).
+
+- If **complex_orchestration** (Complex Orchestration): the demo MUST span **Gmail**, **Gemini Enterprise**, **Sheets**, **Slides**, and **conclude with Google Workspace Studio** (building an Agentic AI workflow).
+
+The scene count MUST match the Length band above. Do **not** substitute a fixed number of copy-paste prompts for scene design — scenes drive the story.
+`;
+
   const orchestrationBlock = `
 ## Demo orchestration profile (respect alongside ALL BigQuery constraints below)
 - **Selected demo length (UI)**: "${demoLengthKey}" — ${demoLengthGuide}
 - **Selected workflow archetype (UI)**: "${workflowArchetypeKey}" — ${archetypeGuide}
 
+${workflowRoutingBlock}
+
 **SCENARIO ADAPTATION (REQUIRED)**:
-1. Interpret and **re-frame the BUSINESS PROBLEM** so the operative demo narrative clearly reflects the archetype (${workflowArchetypeKey}), without contradicting facts the user supplied.
+1. Interpret and **re-frame the BUSINESS PROBLEM** so the operative demo narrative clearly reflects the archetype (${workflowArchetypeKey}) and the workflow routing above, without contradicting facts the user supplied.
 2. Keep **CSV schemas, relational rules, anomalies, PDF/Excel requirements, row targets, joins, naming, language rules** exactly as mandated in sections below — only adapt *story-facing* fields (instructions, summaries, seeded text content, anomaly *labels/context* where logical).
-3. **Scale** the "workspaceSeedData" object complexity and the **detail level** of the Markdown "demoGuide" to demo length (${demoLengthKey}): short = leaner scripts; long = fuller multi-act script.
+3. **Scale** the "workspaceSeedData" object and the **detail level** of the Markdown **demoGuide** to demo length (${demoLengthKey}): short = fewer scenes and leaner copy; long = more scenes and fuller narration.
 4. "workspaceSeedData" is for eventual deployment-time injection (conceptual Gmail/Chat/Docs payloads). Align seeds with BOTH the archetype and the synthetic IDs/facts already present or implied in "tables" / "externalFiles"; do not invent contradictory transaction keys.
 
-## Workspace seeding & Markdown demo narration (additive)
+## Workspace seeding & Markdown demo guide (additive)
 Produce **workspaceSeedData** and **demoGuide** in addition to all existing outputs. Treat these as narrator-facing collateral; warehouse generation rules remain authoritative.
 
 ### workspaceSeedData
@@ -634,24 +698,33 @@ Return a SINGLE JSON object (see schema in output example) capturing **realistic
 - "presentationBeats": optional bullets for eventual Slides script (titles + key figures to cite from data).
 - "prepChecklist": strings presenter does before demo (GCP side — generic wording).
 
-Ensure content **languages** match the business problem language. Keep payloads professional; no placeholders like "TODO".
+**SEED ↔ SCENE 1 (CRITICAL):** Generate seed data (e.g., a starting email for Gmail, starter Doc text, or initial Sheet context) that **matches Scene 1** of the demo guide so the deployment script can pre-populate the environment before the presenter begins.
 
-### demoGuide (Markdown)
-Supply **demoGuide** as either ONE comprehensive Markdown STRING **or** an ARRAY OF Markdown STRING sections (acts/chapters joined logically in narrative order).
+Ensure content **languages** match the business problem language. Keep payloads professional; avoid vague placeholders like "TODO".
 
-The Markdown MUST be **presenter actionable** and richly structured, including:
-- Estimated timing buckets aligned with "${demoLengthKey}" demo length expectations.
-- Roles (presenter vs. hypothetical stakeholder).
-- **What to click / where to navigate** (use product-generic wording, e.g. "open the agent pane", avoiding unnecessary vendor trademarks in instructions).
-- **What to SAY** — sample scripted lines tied to seeded anomalies / archetype transitions.
-- **Expected agent behavior**: tools to invoke (conceptually — SQL reasoning, spreadsheet vs document reasoning), grounding expectations, graceful recovery if a tool fails.
+### demoGuide (single comprehensive Markdown string)
+Return **demoGuide** as **one** JSON string containing **full Markdown** (use \`\\n\` for newlines inside the JSON string).
 
-Use Markdown headings (levels 1–2), numbered steps, and bold callouts consistently.
+The Markdown MUST include one section per scene using **exactly** this per-scene structure (repeat for Scene 1..N; **N** must match the Length / archetype routing rules above):
 
-- **FILENAME DISCLOSURE (NARRATOR ONLY)**: Whenever the narration tells the presenter to attach or cross-reference synthetic files produced in this JSON, cite the **exact** \`externalFiles[].fileName\` values (e.g. the generated PDF/XLS names from your output). This is only for presenter-facing script text inside \`demoGuide\`; do **NOT** embed those filenames verbatim inside **scenarioPrompts** prompts (those remain generic: "uploaded file").
+\`\`\`
+## Scene X: [App Name] - [Action]
 
-### scenarioPrompts (structured copy prompts — unchanged rules)
-Maintain the "scenarioPrompts" ARRAY that powers copy-paste agent prompts internally. Continue to obey **every** DEMO PROMPTS rule in "Critical Notes" (exactly five structured entries, personas, filenames ban, progressive arc, PDF+Excel mandates, geospatial synergy, etc.).
+**Steps:** [What the user clicks]
+
+**The Narrative:** [What the presenter says aloud]
+
+**The Prompt:** [The exact text to type into Gemini / Workspace]
+\`\`\`
+
+You may add an optional short introduction paragraph **before** Scene 1. Within scenes, you may use bullet lists under **Steps** if helpful.
+
+**FILENAME DISCLOSURE (NARRATOR ONLY):** When the script references attaching synthetic files, cite the exact \`externalFiles[].fileName\` in **Steps** or **The Narrative**. Do **NOT** put filenames or extensions inside **scenarioPrompts**.prompt text (keep generic: "the uploaded PDF", "the spreadsheet export").
+
+### scenarioPrompts (aligned to scenes — not a fixed count)
+Emit **scenarioPrompts** as a JSON array of objects \`{ "title", "prompt", "requiredFileId", "tags" }\`.
+
+**COUNT & ORDER (CRITICAL):** The **scenarioPrompts** array MUST contain **exactly one object per \`## Scene\`** in **demoGuide**, in the **same order** (Scene 1 → first array element, etc.). The \`prompt\` field MUST mirror the **The Prompt:** text from that scene (same intent; obey the **NO FILENAMES** rule below). Titles should name the scene goal and persona when helpful.
 
 `;
   
@@ -790,31 +863,32 @@ Output in the following JSON format. Output **pure JSON only without code blocks
     "sheetSynopsis": ["Metrics presenters should cite from BigQuery reasoning"],
     "prepChecklist": ["Verify dataset loaded", "Prepare agent pane", "Have external files handy"]
   },
-  "demoGuide": "# End-to-End Demo Script\\n\\n## 0. Setup (Xm)\\nPresenter actions...\\n\\n## Expected agent behavior\\n...",
+  "demoGuide": "# Demo Flow\\n\\n## Scene 1: Gmail - Triage\\n\\n**Steps:** Open Gmail → …\\n\\n**The Narrative:** …\\n\\n**The Prompt:** …\\n\\n## Scene 2: Google Docs - Draft\\n\\n**Steps:** …\\n\\n**The Narrative:** …\\n\\n**The Prompt:** …",
   "scenarioPrompts": [
     {
-      "title": "Prompt 1 — Multi-table correlation arc",
-      "prompt": "...copy-ready user utterance respecting all DEMO PROMPTS rules below...",
+      "title": "Scene 1 — title aligned to demoGuide Scene 1",
+      "prompt": "... mirrors **The Prompt:** from Scene 1; no filenames; generic file references only ...",
       "requiredFileId": "",
-      "tags": ["Progressive"]
+      "tags": ["Scene1"]
+    },
+    {
+      "title": "Scene 2 — title aligned to demoGuide Scene 2",
+      "prompt": "... mirrors **The Prompt:** from Scene 2 ...",
+      "requiredFileId": "",
+      "tags": ["Scene2"]
     }
   ]
 }
 
 **IMPORTANT — demoGuide + scenarioPrompts**:
-- The "scenarioPrompts" array MUST contain **exactly 5 objects** shaped like the first entry shown (vary titles/content per Critical Notes).
-- The "demoGuide" field MUST be **either one Markdown STRING** (use \\n escapes for newlines inside JSON) **or an ARRAY of Markdown STRING chapters** (e.g., separate strings "# Act I\\n...", "# Act II\\n..."). Never put narrator script content inside "scenarioPrompts"; never encode the Markdown narrator script as structured {title,prompt} objects inside "demoGuide".
+- **demoGuide** MUST be a **single Markdown string** (as shown). Do **not** return an array of objects for **demoGuide**.
+- **scenarioPrompts** MUST contain **one object per \`## Scene\`** in **demoGuide** (same order and count). Do **not** pad to a fixed number of prompts.
 
 ## Critical Notes
-- **DEMO PROMPTS (CRITICAL)**: Generate EXACTLY 5 structured demo prompts inside the **scenarioPrompts** JSON array that showcase the agent's "reasoning" and "tool-use" capabilities.
-    - **NO FILENAMES (CRITICAL)**: DO NOT include specific file names or extensions (e.g., 'market_report_2024', 'data.tsv') in the prompt text. Use generic phrasing.
-    1. **DISTRIBUTION & ADVANCED PROGRESSION (CRITICAL)**: At least 3 prompts MUST be "No file required". Generate prompts in a progressive advanced arc:
-        - Prompt 1: Advanced Multi-Table Correlation (Join multiple tables right off the bat, no simple aggregations).
-        - Prompt 2: Deep-dive Audit / Root Cause Analysis (Utilizing the generated Excel/TSV log file for verification).
-        - Prompt 3: Unstructured Data Fusion (AWT - Utilizing the generated PDF report for cross-referencing).
-        - Prompt 4: Geospatial Context (Map + DB).
-        - Prompt 5: Executive Strategic "What-if" Scenario.
-    2. **PERSONA ROTATION (CRITICAL)**: Vary the tone and perspective by rotating personas for each prompt (e.g., CFO, Ops Manager, Regional Director, Front-line Lead).
+- **SCENARIO PROMPTS & DEMO GUIDE (CRITICAL)**: **scenarioPrompts** MUST mirror **demoGuide**: **same number of entries as \`## Scene\` sections**, same order. Each \`prompt\` MUST align with that scene's **The Prompt:** (generic file wording only — see NO FILENAMES). Showcase reasoning and tool-use across the **whole demo**, distributed across scenes (not a rigid "five prompt" template).
+    - **NO FILENAMES (CRITICAL)**: DO NOT include specific file names or extensions (e.g., 'market_report_2024', 'data.tsv') in \`scenarioPrompts[].prompt\`. Use generic phrasing.
+    1. **PROGRESSION (CRITICAL)**: Build a **logical arc** across scenes matching the selected **Archetype** and **Length** (e.g., early scenes: multi-table correlation; mid scenes: audit / root-cause with the spreadsheet export; include unstructured PDF cross-check; include geospatial reasoning where the business problem supports it; closing scenes: executive / what-if synthesis). Assign **requiredFileId** to reference \`externalFiles[].id\` only for scenes that actually use that file in **The Prompt:**.
+    2. **PERSONA ROTATION (CRITICAL)**: Vary the tone and perspective across scenes (e.g., CFO, Ops Manager, Regional Director, Front-line Lead).
     3. **EXTERNAL DATA NECESSITY & LOGICAL CONSISTENCY (CRITICAL)**: You MUST generate exactly one PDF file AND exactly one Excel file (.xlsx) unless it is completely impossible for the business context. The files generated MUST be external data (not inside the current system) and MUST be unstructured or semi-structured in format.
         - **LOGICAL LINKAGE**: ALL discrepancies or specific transaction IDs (e.g., "INV-7829") mentioned in the external file content MUST correspond to standard records that ACTUALLY EXIST inside the generated BigQuery CSV tables. Do NOT make up transaction IDs in the external file that do not exist in the database tables. This allows the user to find the anomaly by comparing the external file against the database.
     3. **FILE FORMAT & REALISM (CRITICAL)**: 
@@ -828,7 +902,7 @@ Output in the following JSON format. Output **pure JSON only without code blocks
             - **HARDCODED UNITS & FORMATTING**: Include units (e.g., 円, L, kg, %) inside the data cells itself as strings. Use thousand-comma separators for money values — this is permitted and safe since you are using Tabs as separators! (e.g., "150,000円").
             - **RICH QUALITATIVE COMMENTS**: Include a "Remarks/Notes" column with realistic, verbose business comments (e.g., "Delayed due to traffic accident on Route 1").
     4. **NO TABLES/COLUMNS**: Do NOT mention 'production_batches', 'port_id', etc. in the prompt text.
-    5. **GEOSPATIAL SYNERGY**: At least one prompt MUST require the agent to use BOTH system data (for historical metrics) and location/map data (for travel times, routes, or place details) to answer. Use generic terms like 'location data' or 'map information' instead of 'Google Maps'.
+    5. **GEOSPATIAL SYNERGY**: At least one scene's **The Prompt:** (and matching **scenarioPrompts** entry) MUST require the agent to use BOTH system data (for historical metrics) and location/map data (for travel times, routes, or place details). Use generic terms like 'location data' or 'map information' instead of 'Google Maps'.
     5. **PROBLEM-CENTRIC**: Focus on high-level business goals (e.g., "Identify the financial impact of logistics delays in coastal regions and propose an optimized route for the highest-value shipments").
 - **DATA STORYTELLING & ANOMALIES (CRITICAL)**: You MUST seed at least one complex business anomaly across the tables. For example, a specific product category having a high return rate only in a specific region during a specific week, which correlates with a delivery carrier listed in the external log file. Do not make it obvious; the agent should need to join at least two tables and analyze trends to find it.
 - **FACTOR ADHERENCE (CRITICAL)**: The generated CSV data MUST strictly adhere to the patterns described in \`appliedFactors\` in your JSON response. If you list 'Temporal Pattern: Weekday lunch surge', the timestamped transaction data MUST show higher volumes during those hours.
@@ -844,8 +918,8 @@ Output in the following JSON format. Output **pure JSON only without code blocks
     - STRING values in the CSV data (e.g., product names, categories, person names, names of things)
     - systemInstruction
     - appliedFactors descriptions
-    - scenarioPrompts titles and prompts (five structured demo utterances)
-    - demoGuide Markdown narration (presenter-facing script)
+    - scenarioPrompts titles and prompts (one per **## Scene**, aligned to **The Prompt:**)
+    - demoGuide Markdown (all narrator-facing script text, **Steps / The Narrative / The Prompt** per scene)
     - workspaceSeedData free-text fields (emails bodies, chat text, synopsis bullets, summaries)
     - externalFiles fileName and fileContent
 - **TECHNICAL NAMES (CRITICAL)**: Table names, column names, and ALL ID fields (primary/foreign keys) MUST use English (snake_case) for technical compatibility and data integrity. Do NOT translate technical identifiers.
@@ -3440,32 +3514,13 @@ function stripMarkdownBoldMarkers_(text) {
 }
 
 /**
- * Narrator script from demoGuideMarkdown only; appendix rows from structured planResult.demoGuide + externalFiles ids.
+ * Markdown demo guide (primary) + optional legacy storyboard object for doc fallbacks.
  */
 function buildDemoGuideDocAssembly_(planResult) {
-  var narratorMarkdown = '';
-  if (planResult && planResult.demoGuideMarkdown) {
-    narratorMarkdown = String(planResult.demoGuideMarkdown).trim();
-  }
-
-  var appendixPrompts = [];
-  var steps = planResult && Array.isArray(planResult.demoGuide) ? planResult.demoGuide : [];
-  var ext = planResult && planResult.externalFiles ? planResult.externalFiles : [];
-
-  for (var i = 0; i < steps.length; i++) {
-    var step = steps[i];
-    if (!step || typeof step !== 'object') continue;
-    var rid = step.requiredFileId !== undefined && step.requiredFileId !== null ? String(step.requiredFileId).trim() : '';
-    var attachmentName = rid ? resolveExternalFileNameById_(rid, ext) : '';
-    appendixPrompts.push({
-      index: appendixPrompts.length + 1,
-      title: String(step.title || 'Prompt ' + (appendixPrompts.length + 1)),
-      attachmentName: attachmentName,
-      promptPlain: stripMarkdownBoldMarkers_(step.prompt || '')
-    });
-  }
-
-  return { narratorMarkdown: narratorMarkdown, appendixPrompts: appendixPrompts };
+  var md = planResult && planResult.demoGuideMarkdown ? String(planResult.demoGuideMarkdown).trim() : '';
+  var rawStoryboard = planResult && planResult.demoGuideStoryboard ? planResult.demoGuideStoryboard : (planResult ? planResult.demoGuideStructured : null);
+  var storyboard = normalizeStoryboardGuide_(rawStoryboard);
+  return { narratorMarkdown: md, storyboard: storyboard };
 }
 
 function applyMarkdownBoldToElement_(element, plainTextLine) {
@@ -3496,7 +3551,56 @@ function applyMarkdownBoldToElement_(element, plainTextLine) {
   }
 }
 
-function fillGoogleDocBodyFromMarkdown_(body, markdownContent) {
+function appendLabelValueParagraph_(container, label, value) {
+  var p = container.appendParagraph('');
+  p.appendText(label + ': ').setBold(true);
+  p.appendText(safeString_(value));
+  return p;
+}
+
+function fillGoogleDocBodyFromStoryboard_(body, storyboardData) {
+  var storyboard = normalizeStoryboardGuide_(storyboardData);
+
+  body.appendParagraph(storyboard.demoTitle + ' AWT Demo Flow');
+  body.appendParagraph('');
+  body.appendParagraph('Creator: Auto-generated');
+  body.appendParagraph('Status: Draft');
+  body.appendParagraph('Resources:');
+  body.appendParagraph('Demo Account: [placeholder]');
+  body.appendParagraph('Google Drive folder: [placeholder]');
+  body.appendParagraph('Gemini Enterprise URL: [placeholder]');
+  body.appendParagraph('Storyboard: ' + storyboard.storyboardTitle);
+  body.appendParagraph('Intro: ' + storyboard.intro);
+  body.appendParagraph('');
+
+  var table = body.appendTable();
+  var headerRow = table.appendTableRow();
+  var scriptHeader = headerRow.appendTableCell('Script for Sales Person');
+  scriptHeader.editAsText().setBold(true);
+  var uxHeader = headerRow.appendTableCell('UX');
+  uxHeader.editAsText().setBold(true);
+
+  var scenes = Array.isArray(storyboard.scenes) ? storyboard.scenes : [];
+  for (var i = 0; i < scenes.length; i++) {
+    var scene = scenes[i] || {};
+    var row = table.appendTableRow();
+    var leftCell = row.appendTableCell('');
+    var rightCell = row.appendTableCell('');
+
+    var sceneTitle = leftCell.appendParagraph(safeString_(scene.sceneTitle) || ('Scene ' + (i + 1)));
+    sceneTitle.editAsText().setBold(true);
+    appendLabelValueParagraph_(leftCell, 'Voiceover', scene.voiceover);
+    appendLabelValueParagraph_(leftCell, 'Action', scene.action);
+    appendLabelValueParagraph_(leftCell, 'Prompt', scene.prompt || 'N/A');
+
+    var ux = rightCell.appendParagraph('[Screenshot Placeholder]');
+    ux.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+    ux.editAsText().setItalic(true).setForegroundColor('#808080');
+  }
+}
+
+/** Renders planner Markdown (#/##/###, - bullets, **bold**) into the document body. */
+function fillGoogleDocBodyFromMarkdownContent_(body, markdownContent) {
   var content = markdownContent === null || markdownContent === undefined ? '' : String(markdownContent);
   var lines = content.split(/\r?\n/);
   var li;
@@ -3577,7 +3681,7 @@ function mimeBlobTypeForDemoFile_(externalFileEntry) {
 /**
  * Places Demo Guide Doc + attachment blobs under Demo/{dirName}; link-sharing on folder & doc.
  */
-function provisionDemoDriveKit_(dirName, narratorMarkdown, appendixPrompts, externalFiles, docTitle) {
+function provisionDemoDriveKit_(dirName, storyboardData, markdownContent, externalFiles, docTitle) {
   var out = {
     success: false,
     demoGuideDocUrl: '',
@@ -3594,8 +3698,13 @@ function provisionDemoDriveKit_(dirName, narratorMarkdown, appendixPrompts, exte
 
     var doc = DocumentApp.create(safeTitle);
     var docId = doc.getId();
-    fillGoogleDocBodyFromMarkdown_(doc.getBody(), narratorMarkdown || '');
-    appendPromptAppendixToBody_(doc.getBody(), appendixPrompts || []);
+    var body = doc.getBody();
+    var md = markdownContent !== undefined && markdownContent !== null ? String(markdownContent).trim() : '';
+    if (md) {
+      fillGoogleDocBodyFromMarkdownContent_(body, md);
+    } else {
+      fillGoogleDocBodyFromStoryboard_(body, storyboardData || {});
+    }
     doc.saveAndClose();
 
     var docFile = DriveApp.getFileById(docId);
@@ -3627,8 +3736,7 @@ function provisionDemoDriveKit_(dirName, narratorMarkdown, appendixPrompts, exte
 }
 
 /**
- * Prefers narrator Markdown from planning; synthesizes Markdown from structured scenario prompts if absent.
- * @deprecated Prefer buildDemoGuideDocAssembly_ + provisionDemoDriveKit_ for persisted docs.
+ * @deprecated Structured storyboard guides replaced Markdown narration.
  */
 function buildDemoGuideMarkdownFromPlan(planResult) {
   if (!planResult) return '';
@@ -3661,7 +3769,7 @@ function createGoogleDocFromMarkdown(markdownContent, docTitle, appendixPrompts)
 
     var doc = DocumentApp.create(titleBase);
     var body = doc.getBody();
-    fillGoogleDocBodyFromMarkdown_(body, markdownContent || '');
+    fillGoogleDocBodyFromMarkdownContent_(body, markdownContent || '');
     appendPromptAppendixToBody_(body, appendixPrompts || []);
 
     doc.saveAndClose();
