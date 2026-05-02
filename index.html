@@ -1314,6 +1314,28 @@
                       Complex Orchestration</button>
                   </div>
                 </div>
+                <div>
+                  <p class="text-[14px] font-bold text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-3">
+                    <span class="h-px flex-1 min-w-0 bg-gradient-to-r from-transparent via-violet-500/35 to-violet-500/40"></span>
+                    <span class="shrink-0 text-center">Target output language</span>
+                    <span class="h-px flex-1 min-w-0 bg-gradient-to-l from-transparent via-violet-500/35 to-violet-500/40"></span>
+                  </p>
+                  <p class="text-[14px] text-gray-400 mb-3 leading-snug">Language for the <strong
+                      class="text-gray-300">generated</strong> demo guide, copy-paste prompts, and synthetic PDF /
+                    spreadsheet text. Technical table names stay English.</p>
+                  <label class="sr-only" for="outputLanguage">Target output language</label>
+                  <select id="outputLanguage" onchange="refreshDemoDimensionPreview()"
+                    class="awt-select w-full bg-black/40 border border-gray-700 rounded-xl py-3 pl-4 text-[14px] text-gray-200">
+                    <option value="auto" selected>Auto — match business problem text</option>
+                    <option value="en">English</option>
+                    <option value="zh-TW">Traditional Chinese (繁體中文)</option>
+                    <option value="ko">Korean (한국어)</option>
+                    <option value="id">Bahasa Indonesia</option>
+                    <option value="fil">Filipino</option>
+                    <option value="th">Thai (ไทย)</option>
+                    <option value="vi">Vietnamese (Tiếng Việt)</option>
+                  </select>
+                </div>
               </div>
               <div class="xl:col-span-8">
                 <div id="demoDimensionPreviewCard"
@@ -1350,27 +1372,40 @@
               Switch Method
             </button>
             <div class="mb-8 p-6 bg-white/5 rounded-2xl border border-white/10 shadow-inner">
-              <div class="flex items-center gap-4 mb-4">
-                <label class="text-[15px] font-bold text-sky-400 uppercase tracking-widest flex items-center gap-2">
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                      d="M13 10V3L4 14h7v7l9-11h-7z">
-                    </path>
-                  </svg>
-                  Template Hub
-                </label>
-                <div class="flex items-center gap-1 bg-black/20 rounded-lg p-1 border border-white/5 shadow-sm">
-                  <svg class="w-2.5 h-2.5 text-gray-500 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129">
-                    </path>
-                  </svg>
-                  <select id="langSelector" onchange="updateSamples()"
-                    class="bg-transparent text-[14px] outline-none text-sky-400/80 font-bold px-1 py-0.5 cursor-pointer hover:text-sky-300 transition-colors">
-                    <option value="en">English</option>
-                    <option value="ja">日本語</option>
-                  </select>
+              <div class="mb-4">
+                <div class="flex flex-wrap items-center gap-3 mb-2">
+                  <span class="text-[15px] font-bold text-sky-400 uppercase tracking-widest flex items-center gap-2">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M13 10V3L4 14h7v7l9-11h-7z">
+                      </path>
+                    </svg>
+                    Template Hub
+                  </span>
+                  <span class="text-[14px] text-gray-500 uppercase tracking-widest hidden sm:inline">·</span>
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <label for="langSelector" class="text-[14px] font-bold text-gray-500 uppercase tracking-wider">Gallery
+                      language</label>
+                    <div class="flex items-center gap-1 bg-black/20 rounded-lg px-2 py-1 border border-white/5 shadow-sm">
+                      <svg class="w-2.5 h-2.5 text-gray-500 shrink-0" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129">
+                        </path>
+                      </svg>
+                      <select id="langSelector" onchange="updateSamples()" aria-label="Template gallery language"
+                        class="bg-transparent text-[14px] outline-none text-sky-400/90 font-bold px-1 py-0.5 cursor-pointer hover:text-sky-300 transition-colors max-w-[11rem]">
+                        <option value="en">English scenarios</option>
+                        <option value="ja">日本語シナリオ</option>
+                      </select>
+                    </div>
+                  </div>
                 </div>
+                <p class="text-[13px] text-gray-500 leading-relaxed pl-0.5">Scenarios are authored in <strong
+                    class="text-gray-400">English</strong> and <strong class="text-gray-400">Japanese</strong> only. For
+                  Korean, Thai, Vietnamese, Traditional Chinese, Bahasa Indonesia, or Filipino output, pick any template
+                  (or write your own goal) and set <strong class="text-violet-400/90">Target output language</strong> in
+                  Step 1—the generator localizes the demo guide and assets.</p>
               </div>
 
               <!-- Industry Filter -->
@@ -1651,48 +1686,49 @@
             </div>
           </div>
 
-          <!-- Google Drive demo kit links (filled when Apps Script provisioning succeeds) -->
-          <div id="demoArtifactsLinksSection"
-            class="glass rounded-2xl p-6 mb-10 border border-emerald-500/25 bg-emerald-500/[0.04]">
-            <h3 class="text-sm font-bold text-white uppercase tracking-tight mb-3 flex items-center gap-2">
-              <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-              </svg>
-              Demo kit on Google Drive
-            </h3>
-            <p class="text-[14px] text-gray-400 mb-4 leading-relaxed">Your narrative guide, copy-paste prompts appendix,
-              and synthetic attachment files live under <code class="text-emerald-300/90">Demo / {demo folder}</code> in
-              the account running this generator.</p>
-            <p id="demoArtifactsUrlsMissing" class="hidden text-[14px] text-amber-400/95 mb-4 leading-relaxed">
-              Drive links were not returned (provisioning may have failed). Check Apps Script execution logs or redeploy and try again.
-            </p>
-            <div class="flex flex-col sm:flex-row flex-wrap gap-3">
-              <a id="demoGuideDocLink" href="#" target="_blank" rel="noopener noreferrer"
-                class="hidden items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 text-[14px] font-bold uppercase tracking-wide transition-colors">
-                <span>Open demo guide Doc</span>
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                </svg>
-              </a>
-              <a id="demoDriveFolderLink" href="#" target="_blank" rel="noopener noreferrer"
-                class="hidden items-center gap-2 px-4 py-2.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-sky-300 text-[14px] font-bold uppercase tracking-wide transition-colors">
-                <span>Open demo Drive folder</span>
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                </svg>
-              </a>
-            </div>
-          </div>
-
           <!-- Step 2: Review & Customize Assets -->
           <div id="section-step2" class="glass rounded-3xl p-8 border border-white/5 scroll-mt-8">
             <div class="flex items-center gap-3 mb-8">
               <span
                 class="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-500 text-white font-bold shadow-lg shadow-sky-500/40">2</span>
               <h2 class="step-title-theme text-xl font-bold uppercase tracking-tight">Step 2: Review</h2>
+            </div>
+
+            <!-- Google Drive demo kit (guide + assets folder); URLs filled after generation -->
+            <div id="demoArtifactsLinksSection"
+              class="rounded-2xl p-6 mb-10 border border-emerald-500/25 bg-emerald-500/[0.06] ring-1 ring-white/5">
+              <h3 class="text-sm font-bold text-white uppercase tracking-tight mb-3 flex items-center gap-2">
+                <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                </svg>
+                Demo kit on Google Drive
+              </h3>
+              <p class="text-[14px] text-gray-400 mb-4 leading-relaxed">Open the <strong class="text-emerald-300/90">Demo
+                  Guide</strong> Google Doc and the <strong class="text-sky-300/90">Drive folder</strong> with PDF,
+                spreadsheet, and other synthetic assets for this run (under <code
+                  class="text-emerald-300/90">Demo / {folder}</code> for the account running this generator).</p>
+              <p id="demoArtifactsUrlsMissing" class="hidden text-[14px] text-amber-400/95 mb-4 leading-relaxed">
+                Drive links were not returned (provisioning may have failed). Check Apps Script execution logs or redeploy and try again.
+              </p>
+              <div class="flex flex-col sm:flex-row flex-wrap gap-3">
+                <a id="demoGuideDocLink" href="#" target="_blank" rel="noopener noreferrer"
+                  class="hidden items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 text-[14px] font-bold uppercase tracking-wide transition-colors">
+                  <span>Open Demo Guide (Google Doc)</span>
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                  </svg>
+                </a>
+                <a id="demoDriveFolderLink" href="#" target="_blank" rel="noopener noreferrer"
+                  class="hidden items-center gap-2 px-4 py-2.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-sky-300 text-[14px] font-bold uppercase tracking-wide transition-colors">
+                  <span>Open demo assets folder (Drive)</span>
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                  </svg>
+                </a>
+              </div>
             </div>
 
             <!-- System Instruction -->
@@ -2420,6 +2456,18 @@
       'Optional Gmail OAuth + Secret Manager — only when Workspace is on'
     ];
 
+    /** Mirrors PlanningPrompt.gs output language codes for the Step 1 preview card. */
+    const OUTPUT_LANG_PREVIEW = {
+      auto: 'Target output language: Auto — match your business problem text.',
+      en: 'Target output language: English.',
+      'zh-TW': 'Target output language: Traditional Chinese.',
+      ko: 'Target output language: Korean.',
+      id: 'Target output language: Bahasa Indonesia.',
+      fil: 'Target output language: Filipino.',
+      th: 'Target output language: Thai.',
+      vi: 'Target output language: Vietnamese.'
+    };
+
     function demoPreviewLi_(text) {
       return '<li class="flex gap-2 items-start"><span class="text-sky-400 shrink-0 mt-0.5">▸</span><span>' + text + '</span></li>';
     }
@@ -2435,6 +2483,9 @@
       const lenKey = lenEl ? lenEl.value : 'medium';
       const archKey = archEl ? archEl.value : 'triage_response';
       const workspaceOn = wsEl ? wsEl.checked : false;
+      const outLangEl = document.getElementById('outputLanguage');
+      const outKey = outLangEl ? outLangEl.value : 'auto';
+      const outPreview = OUTPUT_LANG_PREVIEW[outKey] || OUTPUT_LANG_PREVIEW.auto;
 
       const L = DEMO_PREVIEW_LENGTH[lenKey] || DEMO_PREVIEW_LENGTH.medium;
       const A = DEMO_PREVIEW_ARCHETYPE[archKey] || DEMO_PREVIEW_ARCHETYPE.triage_response;
@@ -2449,7 +2500,7 @@
 
       if (headline) headline.textContent = L.label + ' · ' + A.label;
       if (summary) summary.textContent = A.summary;
-      if (lenNote) lenNote.textContent = L.note;
+      if (lenNote) lenNote.textContent = L.note + ' ' + outPreview;
 
       if (gcpUl) {
         gcpUl.innerHTML = DEMO_PREVIEW_GCP_CORE.map(demoPreviewLi_).join('');
@@ -2633,6 +2684,7 @@
       document.getElementById('userGoal').value = '';
       document.getElementById('rowCount').value = '100';
       document.getElementById('tableCount').value = '5';
+      if (document.getElementById('outputLanguage')) document.getElementById('outputLanguage').value = 'auto';
       document.getElementById('publicDatasetId').value = '';
       if (document.getElementById('projectIdInput')) {
         document.getElementById('projectIdInput').value = '';
@@ -3059,7 +3111,8 @@
         usePublicDataset: document.getElementById('usePublicDataset').checked,
         enableWorkspaceTools: document.getElementById('enableWorkspaceTools').checked,
         demoLength: document.getElementById('demoLength').value,
-        workflowArchetype: document.getElementById('workflowArchetype').value
+        workflowArchetype: document.getElementById('workflowArchetype').value,
+        outputLanguage: (document.getElementById('outputLanguage') || { value: 'auto' }).value
       };
 
       const stepsSection = document.getElementById('stepsSection');
