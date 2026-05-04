@@ -5,6 +5,7 @@
 /** Display labels for generator UI output languages (BCP-47 style codes). */
 var SUPPORTED_OUTPUT_LANGUAGES = {
   'en': { englishLabel: 'English', nativeLabel: 'English' },
+  'ja': { englishLabel: 'Japanese', nativeLabel: '日本語' },
   'zh-TW': { englishLabel: 'Traditional Chinese', nativeLabel: '繁體中文' },
   'ko': { englishLabel: 'Korean', nativeLabel: '한국어' },
   'id': { englishLabel: 'Indonesian (Bahasa Indonesia)', nativeLabel: 'Bahasa Indonesia' },
@@ -15,7 +16,7 @@ var SUPPORTED_OUTPUT_LANGUAGES = {
 
 /**
  * @param {string} [raw]
- * @returns {'auto'|'en'|'zh-TW'|'ko'|'id'|'fil'|'th'|'vi'}
+ * @returns {'auto'|'en'|'ja'|'zh-TW'|'ko'|'id'|'fil'|'th'|'vi'}
  */
 function normalizeOutputLanguageCode_(raw) {
   if (raw === undefined || raw === null || String(raw).trim() === '') return 'auto';
@@ -24,6 +25,7 @@ function normalizeOutputLanguageCode_(raw) {
   if (s === 'zh-TW' || s.toLowerCase() === 'zh-tw') return 'zh-TW';
   var lower = s.toLowerCase();
   if (lower === 'en') return 'en';
+  if (lower === 'ja') return 'ja';
   if (lower === 'ko') return 'ko';
   if (lower === 'id') return 'id';
   if (lower === 'fil') return 'fil';

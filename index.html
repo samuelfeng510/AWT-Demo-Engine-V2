@@ -886,7 +886,10 @@
         <div class="pt-6 mt-auto border-t border-white/5">
           <div class="px-3" role="contentinfo" aria-label="Developer credit">
             <p class="text-[14px] text-gray-500 leading-relaxed">
-              <span class="text-gray-300 font-medium">Workspace APAC Team</span><br>
+              <span class="text-gray-300 font-medium">Workspace APAC Team</span><span class="text-gray-600 mx-1.5"
+                aria-hidden="true">·</span><a href="https://github.com/samuelfeng510/AWT-Demo-Engine-V2" target="_blank"
+                rel="noopener noreferrer"
+                class="text-sky-500/90 hover:text-sky-400 underline decoration-sky-500/30 underline-offset-2">Source</a><br>
               <span class="text-gray-500">Fork lineage: </span><a
                 href="https://github.com/ryotat7/ge-demo-generator" target="_blank" rel="noopener noreferrer"
                 class="text-sky-500/90 hover:text-sky-400 underline decoration-sky-500/30 underline-offset-2">Ryota Tokodai&rsquo;s GE Demo Generator</a>
@@ -1328,6 +1331,7 @@
                     class="awt-select w-full bg-black/40 border border-gray-700 rounded-xl py-3 pl-4 text-[14px] text-gray-200">
                     <option value="auto" selected>Auto — match business problem text</option>
                     <option value="en">English</option>
+                    <option value="ja">Japanese (日本語)</option>
                     <option value="zh-TW">Traditional Chinese (繁體中文)</option>
                     <option value="ko">Korean (한국어)</option>
                     <option value="id">Bahasa Indonesia</option>
@@ -1403,7 +1407,7 @@
                 </div>
                 <p class="text-[13px] text-gray-500 leading-relaxed pl-0.5">Scenarios are authored in <strong
                     class="text-gray-400">English</strong> and <strong class="text-gray-400">Japanese</strong> only. For
-                  Korean, Thai, Vietnamese, Traditional Chinese, Bahasa Indonesia, or Filipino output, pick any template
+                  Japanese, Korean, Thai, Vietnamese, Traditional Chinese, Bahasa Indonesia, or Filipino output, pick any template
                   (or write your own goal) and set <strong class="text-violet-400/90">Target output language</strong> in
                   Step 1—the generator localizes the demo guide and assets.</p>
               </div>
@@ -2460,6 +2464,7 @@
     const OUTPUT_LANG_PREVIEW = {
       auto: 'Target output language: Auto — match your business problem text.',
       en: 'Target output language: English.',
+      ja: 'Target output language: Japanese.',
       'zh-TW': 'Target output language: Traditional Chinese.',
       ko: 'Target output language: Korean.',
       id: 'Target output language: Bahasa Indonesia.',
@@ -3104,7 +3109,7 @@
     function generateDemo() {
       const userGoal = document.getElementById('userGoal').value;
       if (!userGoal) return alert('Goal required.');
-      const options = {
+      const baseOptions = {
         rowCount: document.getElementById('rowCount').value,
         tableCount: document.getElementById('tableCount').value,
         publicDatasetId: document.getElementById('publicDatasetId').value,
@@ -3150,38 +3155,51 @@
         s2.querySelector('.step-message').innerText = 'Bundling assets... (this may take 5-8 minutes)';
       }, 25000); // More realistic ~25s timing
 
-      google.script.run
-        .withSuccessHandler(res => {
-          if (isCancelled) return;
-          GenerationLogger.stop();
-          document.getElementById('generateBtn').disabled = false;
-          document.getElementById('btnSpinner').classList.add('hidden');
-          document.getElementById('btnText').innerText = 'Generate Setup Script & Assets';
+      const ua = typeof navigator !== 'undefined' ? (navigator.userAgent || '') : '';
 
-          if (!res.success) return onFailure(res.error);
-
-          // Complete animation
-          s2.classList.add('step-completed');
-          s2.querySelector('.step-message').innerText = 'Bundle ready';
-
-          setTimeout(() => {
+      function startGenerateClientReportedIp(clientIp) {
+        const options = Object.assign({}, baseOptions, {
+          clientMeta: { userAgent: ua, clientIp: clientIp || '' }
+        });
+        google.script.run
+          .withSuccessHandler(res => {
             if (isCancelled) return;
-            stepsSection.classList.add('hidden');
-            currentData = res;
-            try {
-              showFinalResult(res);
-            } catch (uiErr) {
-              console.error('UI Rendering Error:', uiErr);
-            }
+            GenerationLogger.stop();
+            document.getElementById('generateBtn').disabled = false;
+            document.getElementById('btnSpinner').classList.add('hidden');
+            document.getElementById('btnText').innerText = 'Generate Setup Script & Assets';
+
+            if (!res.success) return onFailure(res.error);
+
+            // Complete animation
+            s2.classList.add('step-completed');
+            s2.querySelector('.step-message').innerText = 'Bundle ready';
+
+            setTimeout(() => {
+              if (isCancelled) return;
+              stepsSection.classList.add('hidden');
+              currentData = res;
+              try {
+                showFinalResult(res);
+              } catch (uiErr) {
+                console.error('UI Rendering Error:', uiErr);
+              }
 
 
-          }, 800);
-        })
-        .withFailureHandler(err => {
-          if (isCancelled) return;
-          onFailure(err);
-        })
-        .generateDemo(userGoal, options);
+            }, 800);
+          })
+          .withFailureHandler(err => {
+            if (isCancelled) return;
+            onFailure(err);
+          })
+          .generateDemo(userGoal, options);
+      }
+
+      // Apps Script does not expose the HTTP client IP; this is a client-reported public IP for analytics.
+      fetch('https://api.ipify.org?format=json')
+        .then(r => r.json())
+        .then(j => startGenerateClientReportedIp(j && j.ip ? j.ip : ''))
+        .catch(() => startGenerateClientReportedIp(''));
     }
 
     function onFailure(err) {

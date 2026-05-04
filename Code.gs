@@ -164,6 +164,24 @@ function logUsageToSheet(logEntry) {
     const secs = durationSecs % 60;
     const durationStr = `${mins}m ${secs}s`;
 
+    var durMsRaw =
+      logEntry.durationMs !== undefined && logEntry.durationMs !== null ? Number(logEntry.durationMs) : '';
+    var outLang = logEntry.outputLanguage !== undefined ? String(logEntry.outputLanguage) : '';
+    var demoLen = logEntry.demoLength !== undefined ? String(logEntry.demoLength) : '';
+    var workflow = logEntry.workflowArchetype !== undefined ? String(logEntry.workflowArchetype) : '';
+    var wsTools =
+      logEntry.workspaceToolsEnabled !== undefined
+        ? logEntry.workspaceToolsEnabled
+          ? 'Yes'
+          : 'No'
+        : '';
+    var ua =
+      logEntry.clientUserAgent !== undefined && logEntry.clientUserAgent !== null
+        ? String(logEntry.clientUserAgent)
+        : '';
+    var clientIp =
+      logEntry.clientIp !== undefined && logEntry.clientIp !== null ? String(logEntry.clientIp) : '';
+
     const rowData = [
       timestamp,
       userEmail,
@@ -174,12 +192,37 @@ function logUsageToSheet(logEntry) {
       logEntry.tableCount || 0,
       logEntry.publicDatasetFlag ? 'Yes' : 'No',
       logEntry.tableNames || 'N/A',
-      logEntry.errorClass || 'N/A'
+      logEntry.errorClass || 'N/A',
+      outLang,
+      demoLen,
+      workflow,
+      wsTools,
+      durMsRaw,
+      ua,
+      clientIp
     ];
 
-    // If empty sheet, write header
+    // If empty sheet, write header (existing deployments may add these columns manually if upgrading)
     if (sheet.getLastRow() === 0) {
-      sheet.appendRow(['Timestamp', 'User Email', 'Dataset ID', 'Status', 'Duration', 'Req. Rows', 'Req. Tables', 'Public Dataset', 'Table Names', 'Error Class']);
+      sheet.appendRow([
+        'Timestamp',
+        'User Email',
+        'Dataset ID',
+        'Status',
+        'Duration',
+        'Req. Rows',
+        'Req. Tables',
+        'Public Dataset',
+        'Table Names',
+        'Error Class',
+        'Output Lang',
+        'Demo Length',
+        'Workflow Archetype',
+        'Workspace Tools',
+        'Duration (ms)',
+        'User Agent',
+        'Client IP (reported)'
+      ]);
     }
     
     sheet.appendRow(rowData);
@@ -235,6 +278,23 @@ function logUsageToSheet(logEntry) {
   } catch (e) {
     console.error('[LOGGING] Failed to log usage to sheet:', e.message);
   }
+}
+
+/**
+ * Flattens generation options and optional clientMeta for Usage_Logs columns.
+ * Client IP is browser-reported (not Apps Script server IP).
+ */
+function buildUsageLogExtras_(options) {
+  options = options || {};
+  var meta = options.clientMeta || {};
+  return {
+    outputLanguage: options.outputLanguage != null ? String(options.outputLanguage) : 'auto',
+    demoLength: options.demoLength != null ? String(options.demoLength) : '',
+    workflowArchetype: options.workflowArchetype != null ? String(options.workflowArchetype) : '',
+    workspaceToolsEnabled: !!options.useGoogleWorkspace,
+    clientUserAgent: meta.userAgent != null ? String(meta.userAgent) : '',
+    clientIp: meta.clientIp != null ? String(meta.clientIp) : ''
+  };
 }
 
 /**
@@ -360,16 +420,19 @@ function generateDemo(userGoal, options = {}) {
     
     // Save to telemetry and log to sheet
     const durationMs = Date.now() - startTime;
-    const telemetry = {
-      datasetId: datasetId,
-      status: 'Success',
-      durationMs: durationMs,
-      rowCount: options.rowCount,
-      tableCount: options.tableCount,
-      publicDatasetFlag: options.usePublicDataset,
-      tableNames: result.rawTables ? result.rawTables.map(t => t.tableName).join(', ') : 'N/A',
-      errorClass: null
-    };
+    const telemetry = Object.assign(
+      {
+        datasetId: datasetId,
+        status: 'Success',
+        durationMs: durationMs,
+        rowCount: options.rowCount,
+        tableCount: options.tableCount,
+        publicDatasetFlag: options.usePublicDataset,
+        tableNames: result.rawTables ? result.rawTables.map(t => t.tableName).join(', ') : 'N/A',
+        errorClass: null
+      },
+      buildUsageLogExtras_(options)
+    );
 
     try {
       logUsageToSheet(telemetry);
@@ -387,16 +450,19 @@ function generateDemo(userGoal, options = {}) {
     
     // Log failure telemetry
     const durationMs = Date.now() - startTime;
-    const failureTelemetry = {
-      datasetId: result.datasetId || 'Unknown',
-      status: 'Failure',
-      durationMs: durationMs,
-      rowCount: options.rowCount,
-      tableCount: options.tableCount,
-      publicDatasetFlag: options.usePublicDataset,
-      tableNames: result.rawTables ? result.rawTables.map(t => t.tableName).join(', ') : 'N/A',
-      errorClass: error.message
-    };
+    const failureTelemetry = Object.assign(
+      {
+        datasetId: result.datasetId || 'Unknown',
+        status: 'Failure',
+        durationMs: durationMs,
+        rowCount: options.rowCount,
+        tableCount: options.tableCount,
+        publicDatasetFlag: options.usePublicDataset,
+        tableNames: result.rawTables ? result.rawTables.map(t => t.tableName).join(', ') : 'N/A',
+        errorClass: error.message
+      },
+      buildUsageLogExtras_(options)
+    );
     try {
       logUsageToSheet(failureTelemetry);
     } catch (logErr) {
