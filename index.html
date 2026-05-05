@@ -905,6 +905,28 @@
     <main class="w-full max-w-5xl overflow-y-auto p-6 lg:p-10 min-w-0 no-scrollbar relative">
 
       <div class="max-w-5xl mx-auto">
+        <!-- Preview / WIP disclaimer -->
+        <div
+          class="mb-8 rounded-2xl border border-amber-500/35 bg-amber-950/40 px-4 py-3.5 sm:px-5 sm:py-4 text-left shadow-lg shadow-black/20 ring-1 ring-amber-500/20"
+          role="status" aria-live="polite">
+          <p class="text-[13px] sm:text-[14px] text-amber-100/90 leading-relaxed">
+            <strong class="text-amber-200 font-semibold">Preview — work in progress.</strong>
+            This generator is in an early preview stage; behavior and outputs may change.
+            We are actively looking for <strong class="text-amber-100/95">feedback, feature ideas, and bug reports</strong>.
+            Please reach out to your regional <strong class="text-amber-50">Google Workspace Customer Engineer (CE)</strong>,
+            or contact
+            <a href="mailto:samuelfeng@google.com?subject=AWT%20Demo%20Generator%20feedback"
+              class="text-sky-400 hover:text-sky-300 underline decoration-sky-500/40 underline-offset-2 font-medium">samuelfeng@google.com</a>.
+          </p>
+          <p
+            class="text-[13px] sm:text-[14px] text-amber-100/85 leading-relaxed mt-3 pt-3 border-t border-amber-500/25">
+            <strong class="text-amber-200 font-semibold">Known issue — Google Drive.</strong>
+            File creation from the generated agent (Docs / Sheets / Slides) may fail with a permission error.
+            When it happens, it also illustrates an important idea: <strong class="text-amber-100/95">agent permission
+              boundaries</strong>—agent identities only get the Drive and Docs access your administrators explicitly allow.
+          </p>
+        </div>
+
         <!-- Header -->
         <header class="mb-10 text-center lg:text-left relative">
 

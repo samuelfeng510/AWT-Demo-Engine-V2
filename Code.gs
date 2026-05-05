@@ -11,6 +11,11 @@
 // ===========================================
 
 const SCRIPT_PROPS = PropertiesService.getScriptProperties();
+/**
+ * Web app manifest uses executeAs USER_ACCESSING: Drive demo kit + Spreadsheet logging run as
+ * whoever opens the app while signed into Google. Demo/{dirName} is created in that user's Drive.
+ * Share LOG_SHEET_URL so those users can append (Editor), or usage logging will fail for them.
+ */
 const CONFIG = {
   PROJECT_ID: SCRIPT_PROPS.getProperty('PROJECT_ID'),
   LOCATION: SCRIPT_PROPS.getProperty('LOCATION') || 'global',
@@ -1296,11 +1301,16 @@ ${useGoogleWorkspace ? `
 if [ "$1" = "--setup-gmail" ]; then
   PROJECT_ID=$(gcloud config get-value project 2>/dev/null)
   echo ""
-  echo "📧 Gmail OAuth Re-setup (send + inbox insert / seed emails)"
+  echo "📧 Gmail OAuth re-setup (send + inbox insert / seed emails)"
   echo "────────────────────────────────────────────────────────────────────────────"
-  echo "  Go to: https://console.cloud.google.com/apis/credentials?project=\$PROJECT_ID"
-  echo "  Create Credentials → OAuth client ID → Desktop app"
-  echo "────────────────────────────────────────────────────────────────────────────"
+  echo "  You need a Desktop app OAuth client in this project. If you never set the"
+  echo "  consent screen, do that first: APIs & Services → OAuth consent screen."
+  echo ""
+  echo "  Create / find credentials:"
+  echo "    https://console.cloud.google.com/apis/credentials?project=\$PROJECT_ID"
+  echo "  → + CREATE CREDENTIALS → OAuth client ID → type: Desktop app → copy"
+  echo "     Client ID and Client secret (same steps as the main setup script)."
+  echo ""
   read -p "  OAuth Client ID: " GMAIL_CLIENT_ID
   read -p "  OAuth Client Secret: " GMAIL_CLIENT_SECRET
 
@@ -1320,10 +1330,10 @@ if [ "$1" = "--setup-gmail" ]; then
 
   echo ""
   echo "🌐 Starting Gmail OAuth flow..."
-  echo "   Cloud Shell (GCE): gcloud will print a command — run it on your local Mac/PC,"
-  echo "   then paste the resulting localhost:... URL back here."
-  echo "   Local machine: a browser will open automatically."
-  echo "   Keep this terminal open until you see a success message."
+  echo "   Local: browser opens — sign in and allow — wait for \"Credentials saved\"."
+  echo "   Cloud Shell: copy gcloud's https://accounts.google.com/... URL → open on"
+  echo "   your PC → after login, copy the full http://localhost... URL from the bar"
+  echo "   → paste into Cloud Shell when prompted."
   echo ""
 
   # Capture all gcloud output so we can extract the saved credentials path.
@@ -1536,6 +1546,10 @@ echo ""
 echo "🗂️  Google Workspace integration is enabled."
 echo "   The agent can post to Chat spaces, create Sheets/Docs, and optionally send Gmail."
 echo ""
+echo "   Setup guide below — work through each block in order:"
+echo "   (1) Chat webhook URL — post alerts to a Chat space (simple paste)."
+echo "   (2) Gmail OAuth — only if you need send mail / inbox seeds (browser + credentials)."
+echo ""
 
 # Enable Workspace APIs
 echo "🔧 Enabling Google Workspace APIs..."
@@ -1550,14 +1564,30 @@ gcloud services enable \\
   --project="$PROJECT_ID"
 echo "✅ Workspace APIs enabled."
 echo ""
+echo "📌 If you deploy to Gemini Enterprise / Agent Engine: Sheets, Docs, and Slides"
+echo "   tools use Application Default Credentials (usually the runtime service account)."
+echo "   APIs are enabled above; if you still see 403 from Docs/Drive/Slides, ask your"
+echo "   Google Workspace admin whether service-account access to Drive is allowed,"
+echo "   and whether link-sharing (anyoneWithLink) is restricted for automated creators."
+echo ""
 
 # ── Google Chat: prompt for incoming webhook URL (zero-auth, always works) ────
-echo "💬 Setting up Google Chat webhook (recommended — works out of the box)..."
-echo "────────────────────────────────────────────────────────────"
-echo "  1. Open Google Chat and choose or create a Space"
-echo "  2. Click the space name → Apps & Integrations → Webhooks"
-echo "  3. Click 'Add Webhook', give it a name, and copy the URL"
-echo "────────────────────────────────────────────────────────────"
+echo "💬 Google Chat — incoming webhook (recommended; no OAuth required)"
+echo "────────────────────────────────────────────────────────────────────────────"
+echo "  A webhook lets the agent post messages into one Chat space. Create it once,"
+echo "  then paste the URL below. You can skip and add it later in your .env file."
+echo ""
+echo "  Step-by-step:"
+echo "  1. Open Google Chat: https://chat.google.com"
+echo "  2. Open an existing space or create one: click '+' → Create space → name it."
+echo "  3. At the top, click the space name (not a user), then:"
+echo "       Apps & integrations → Webhooks → Add webhook"
+echo "     (If you do not see Webhooks, your admin may restrict them — ask your admin.)"
+echo "  4. Enter a name (e.g. Demo alerts), optionally add an avatar, click Save."
+echo "  5. Copy the full webhook URL. It should start with:"
+echo "       https://chat.googleapis.com/v1/spaces/..."
+echo "  6. Paste that URL at the prompt below (one line, no spaces)."
+echo ""
 read -p "  Paste your Google Chat Webhook URL (or press Enter to skip): " CHAT_WEBHOOK_URL
 echo ""
 if [ -z "\$CHAT_WEBHOOK_URL" ]; then
@@ -1568,19 +1598,53 @@ fi
 
 # ── Gmail: OAuth via gcloud --client-id-file (works in Cloud Shell and locally)
 echo ""
-echo "📧 Gmail send + inbox seed setup (OPTIONAL)"
+echo "📧 Gmail — send email + optional inbox seed (OPTIONAL)"
 echo "────────────────────────────────────────────────────────────────────────────"
-echo "  OAuth includes gmail.send AND gmail.insert (for LLM-authored seed emails)."
-echo "  gcloud credentials are blocked for Gmail in managed Workspace orgs."
-echo "  Gmail requires a Desktop App OAuth client from your GCP project."
+echo "  This uses YOUR Google account for Gmail (not the service account)."
+echo "  You will create an OAuth \"Desktop app\" client in this GCP project, then"
+echo "  sign in once in a browser so we can store refresh tokens in Secret Manager."
 echo ""
-echo "  Steps (one-time):"
-echo "   1. https://console.cloud.google.com/apis/credentials?project=$PROJECT_ID"
-echo "   2. Create Credentials → OAuth client ID → Desktop app"
-echo "   3. Copy the Client ID and Secret below"
+echo "  Why Desktop app? Google blocks normal gcloud credentials for Gmail in many"
+echo "  Workspace organizations — a Desktop OAuth client is the supported workaround."
 echo ""
-echo "  Skip this step — Chat, Sheets, and Docs work without it."
-echo "  Re-run anytime: bash setup-demo-${suffix}.sh --setup-gmail"
+echo "  ── Part A — OAuth consent screen (first time only in this project) ──"
+echo "  1. Open: https://console.cloud.google.com/apis/credentials/consent?project=$PROJECT_ID"
+echo "  2. Choose User type: Internal (same Workspace only) or External (with test users)."
+echo "  3. Fill App name, User support email, Developer contact → Save and Continue."
+echo "  4. On Scopes you can Save and Continue (scopes are requested during login)."
+echo "  5. If External: add Test users (your email) until the app is verified."
+echo ""
+echo "  ── Part B — Create OAuth Client ID and Secret ──"
+echo "  1. Open: https://console.cloud.google.com/apis/credentials?project=$PROJECT_ID"
+echo "  2. Click + CREATE CREDENTIALS → OAuth client ID."
+echo "  3. Application type: Desktop app (NOT \"Web application\")."
+echo "  4. Name it (e.g. Gmail demo agent) → Create."
+echo "  5. A dialog shows Client ID and Client secret — copy both (Secret is hidden"
+echo "     after you close the dialog; use \"Reset secret\" if you lose it)."
+echo ""
+echo "  ── Part C — Browser sign-in (runs after you paste ID + Secret below) ──"
+echo "  On your own computer (local terminal):"
+echo "    • A browser window usually opens automatically."
+echo "    • Pick the Google account that should send mail for the agent."
+echo "    • Click Continue / Allow when asked for Gmail access."
+echo "    • If you see \"Google hasn't verified this app\": choose Advanced →"
+echo "      Go to ... (unsafe) — normal for internal testing."
+echo "    • When finished, return to the terminal; you should see success text."
+echo ""
+echo "  In Google Cloud Shell (browser-based terminal):"
+echo "    • This script runs 'gcloud auth application-default login' with your Desktop client."
+echo "    • gcloud prints a long https://accounts.google.com/o/oauth2/auth/... URL."
+echo "    • Copy that ENTIRE URL, open it in a normal browser on your Mac or PC"
+echo "      (you can be logged into a different machine than Cloud Shell)."
+echo "    • Complete sign-in and consent in the browser."
+echo "    • The browser may redirect to localhost and show \"This site can't be reached\""
+echo "      — that is OK. Copy the FULL address from the browser's address bar"
+echo "      (it starts with http://localhost and contains code=...)."
+echo "    • Paste that full URL back into the Cloud Shell terminal when gcloud asks,"
+echo "      then press Enter. Wait until you see \"Credentials saved\" or similar."
+echo ""
+echo "  Skip Gmail entirely — Chat post, Sheets, Docs, and Slides still work."
+echo "  Run again later: bash setup-demo-${suffix}.sh --setup-gmail"
 echo "────────────────────────────────────────────────────────────────────────────"
 read -p "  Set up Gmail now? (y/n): " SETUP_GMAIL
 GMAIL_SECRET_ID=""
@@ -1603,12 +1667,10 @@ if [[ "\$SETUP_GMAIL" =~ ^[Yy]$ ]]; then
     [ -f "\$ADC_FILE" ] && cp "\$ADC_FILE" "\$ADC_BACKUP"
 
     echo ""
-    echo "🌐 Starting Gmail OAuth flow..."
-    echo "   Cloud Shell (GCE): gcloud will print a command — run it on your local Mac/PC,"
-    echo "   then paste the resulting localhost:... URL back here."
-    echo "   Local machine: a browser will open automatically."
-    echo "   Log in as the account the agent should send email as."
-    echo "   Keep this terminal open until you see a success message."
+    echo "🌐 Starting Gmail OAuth flow now..."
+    echo "   • Local: complete the browser steps; keep this window until you see success."
+    echo "   • Cloud Shell: copy gcloud's URL → open in your PC browser → after login,"
+    echo "     copy the full localhost URL from the address bar → paste into Cloud Shell."
     echo ""
 
     # Capture all gcloud output so we can extract the saved credentials path.
@@ -2238,6 +2300,23 @@ Auth strategy
                        The SA creates files owned by itself and shares them via
                        the Drive API so anyone with the link can view them.
   Drive search       : ADC readonly scope — lists files visible to the SA.
+
+Gemini Enterprise / 403 "permission denied"
+──────────────────────────────────────────
+  OAuth scopes used here are correct (documents + drive, presentations + drive,
+  spreadsheets + drive). If the agent still cannot create Docs or Slides:
+
+  • GCP: Confirm docs.googleapis.com, slides.googleapis.com, drive.googleapis.com,
+    sheets.googleapis.com are enabled on the **same project** the Reasoning Engine uses.
+  • Workspace admin may block **service accounts** from Google Drive (Security →
+    Access and data control → API controls, or "Third-party app access"). An admin
+    may need to trust the project’s OAuth client or allow the APIs for automation SAs.
+  • Sharing files as **anyoneWithLink** can be restricted by admin policy; failures may
+    occur at permissions().create even after the file is created.
+  • Gmail in this module uses **user** OAuth (Secret Manager), not the SA — different path.
+
+Apps Script (web UI “Demo” Drive kit) uses DocumentApp/DriveApp — see appsscript.json
+oauthScopes; Slides are created only via this Python module, not Apps Script.
 """
 
 import os
@@ -2275,6 +2354,34 @@ def _sa_credentials(scopes: list):
     if not creds.valid:
         creds.refresh(google.auth.transport.requests.Request())
     return creds
+
+
+def _http_error_detail(e: HttpError) -> str:
+    """Append HTTP status + API JSON body for Logs/DEBUG (avoid leaking in user-facing UI verbatim)."""
+    parts = [str(e)]
+    try:
+        status = getattr(getattr(e, "resp", None), "status", None)
+        if status is not None:
+            parts.append("HTTP " + str(status))
+        body = getattr(e, "content", b"") or b""
+        if isinstance(body, bytes):
+            body = body.decode("utf-8", errors="replace")
+        if body:
+            parts.append(body[:1600])
+    except Exception:
+        pass
+    return " | ".join(parts)
+
+
+def _workspace_drive_403_hint() -> str:
+    return (
+        " Common causes: (1) Google Workspace admin blocked service accounts or Drive API "
+        "for automation identities — Security → API controls / Third-party access. "
+        "(2) Only link-sharing failed — try opening the returned URL and share manually. "
+        "(3) Confirm docs.googleapis.com and drive.googleapis.com are enabled on the "
+        "GCP project attached to this Reasoning Engine."
+    )
+
 
 def _gmail_credentials():
     """
@@ -2428,25 +2535,27 @@ def _sheets_create_sync(title: str, headers: list, rows: list) -> dict:
         "https://www.googleapis.com/auth/drive",
     ]
     creds = _sa_credentials(scopes)
-    try:
-        sheets = build("sheets", "v4", credentials=creds, cache_discovery=False)
-        drive  = build("drive",  "v3", credentials=creds, cache_discovery=False)
+    sheets = build("sheets", "v4", credentials=creds, cache_discovery=False)
+    drive = build("drive", "v3", credentials=creds, cache_discovery=False)
 
-        # Create spreadsheet
+    try:
         ss = sheets.spreadsheets().create(body={
             "properties": {"title": title},
             "sheets": [{"properties": {"title": "Anomaly Report"}}],
         }).execute()
         sid = ss["spreadsheetId"]
+    except HttpError as e:
+        detail = _http_error_detail(e)
+        extra = _workspace_drive_403_hint() if getattr(getattr(e, "resp", None), "status", None) == 403 else ""
+        return {"error": "Sheets API error (create): " + detail + extra}
 
-        # Write data
+    try:
         values = [headers] + [[str(c) for c in row] for row in rows]
         sheets.spreadsheets().values().update(
             spreadsheetId=sid, range="Anomaly Report!A1",
             valueInputOption="RAW", body={"values": values}
         ).execute()
 
-        # Bold header row
         sheets.spreadsheets().batchUpdate(spreadsheetId=sid, body={"requests": [{
             "repeatCell": {
                 "range": {"sheetId": 0, "startRowIndex": 0, "endRowIndex": 1},
@@ -2454,19 +2563,30 @@ def _sheets_create_sync(title: str, headers: list, rows: list) -> dict:
                 "fields": "userEnteredFormat.textFormat.bold",
             }
         }]}).execute()
+    except HttpError as e:
+        return {"error": "Sheets API error (write): " + _http_error_detail(e)}
 
-        # Share — anyone with link can view
+    url = "https://docs.google.com/spreadsheets/d/" + sid
+
+    try:
         drive.permissions().create(
             fileId=sid, body={"type": "anyone", "role": "reader"}
         ).execute()
+    except HttpError as pe:
+        return {
+            "success": True,
+            "url": url,
+            "spreadsheet_id": sid,
+            "title": title,
+            "rows_written": len(rows),
+            "sharing_warning": (
+                "Spreadsheet created but link sharing (anyone with link) was denied. "
+                "Share manually from Drive if needed. Detail: " + _http_error_detail(pe)
+            ),
+        }
 
-        url = f"https://docs.google.com/spreadsheets/d/{sid}"
-        return {"success": True, "url": url, "spreadsheet_id": sid,
-                "title": title, "rows_written": len(rows)}
-    except HttpError as e:
-        return {"error": f"Sheets API error: {e}"}
-    except Exception as e:
-        return {"error": str(e)}
+    return {"success": True, "url": url, "spreadsheet_id": sid,
+            "title": title, "rows_written": len(rows)}
 
 async def sheets_create_report(title: str, headers: list, rows: list) -> dict:
     """Create a new Google Sheet documenting anomalies found in BigQuery data.
@@ -2497,31 +2617,45 @@ def _docs_create_sync(title: str, content: str) -> dict:
         "https://www.googleapis.com/auth/drive",
     ]
     creds = _sa_credentials(scopes)
-    try:
-        docs  = build("docs",  "v1", credentials=creds, cache_discovery=False)
-        drive = build("drive", "v3", credentials=creds, cache_discovery=False)
+    docs = build("docs", "v1", credentials=creds, cache_discovery=False)
+    drive = build("drive", "v3", credentials=creds, cache_discovery=False)
 
-        # Create document
+    try:
         doc = docs.documents().create(body={"title": title}).execute()
         doc_id = doc["documentId"]
+    except HttpError as e:
+        detail = _http_error_detail(e)
+        extra = _workspace_drive_403_hint() if getattr(getattr(e, "resp", None), "status", None) == 403 else ""
+        return {"error": "Docs API error (create document): " + detail + extra}
 
-        # Insert content
+    try:
         if content:
             docs.documents().batchUpdate(documentId=doc_id, body={
                 "requests": [{"insertText": {"location": {"index": 1}, "text": content}}]
             }).execute()
+    except HttpError as e:
+        return {"error": "Docs API error (insert text): " + _http_error_detail(e)}
 
-        # Share — anyone with link can view
+    url = "https://docs.google.com/document/d/" + doc_id
+
+    try:
         drive.permissions().create(
             fileId=doc_id, body={"type": "anyone", "role": "reader"}
         ).execute()
+    except HttpError as pe:
+        return {
+            "success": True,
+            "url": url,
+            "document_id": doc_id,
+            "title": title,
+            "sharing_warning": (
+                "Document was created but public link sharing failed (admin policy is common). "
+                "Share the file manually from Google Drive as the file owner. Detail: "
+                + _http_error_detail(pe)
+            ),
+        }
 
-        url = f"https://docs.google.com/document/d/{doc_id}"
-        return {"success": True, "url": url, "document_id": doc_id, "title": title}
-    except HttpError as e:
-        return {"error": f"Docs API error: {e}"}
-    except Exception as e:
-        return {"error": str(e)}
+    return {"success": True, "url": url, "document_id": doc_id, "title": title}
 
 async def docs_create_report(title: str, content: str) -> dict:
     """Create a Google Doc containing a full written anomaly analysis report.
@@ -2556,66 +2690,72 @@ def _slides_create_sync(title: str, slides: list) -> dict:
         "https://www.googleapis.com/auth/drive",
     ]
     creds = _sa_credentials(scopes)
-    try:
-        prs_svc = build("slides", "v1", credentials=creds, cache_discovery=False)
-        drv_svc = build("drive",  "v3", credentials=creds, cache_discovery=False)
+    prs_svc = build("slides", "v1", credentials=creds, cache_discovery=False)
+    drv_svc = build("drive", "v3", credentials=creds, cache_discovery=False)
 
-        # Create a blank presentation
+    try:
         prs = prs_svc.presentations().create(body={"title": title}).execute()
         prs_id = prs["presentationId"]
+    except HttpError as e:
+        detail = _http_error_detail(e)
+        extra = _workspace_drive_403_hint() if getattr(getattr(e, "resp", None), "status", None) == 403 else ""
+        return {"error": "Slides API error (create deck): " + detail + extra}
 
-        requests = []
+    requests = []
+    default_slide_id = prs["slides"][0]["objectId"]
+    requests.append({"deleteObject": {"objectId": default_slide_id}})
 
-        # Delete the default blank slide that Google creates automatically
-        default_slide_id = prs["slides"][0]["objectId"]
-        requests.append({"deleteObject": {"objectId": default_slide_id}})
+    for slide in slides:
+        heading = slide.get("heading", "")
+        body_text = slide.get("body", "")
 
-        for slide in slides:
-            heading = slide.get("heading", "")
-            body_text = slide.get("body", "")
+        slide_id = "slide_" + str(len(requests))
+        title_id = "title_" + str(len(requests))
+        body_id = "body_" + str(len(requests))
 
-            slide_id    = f"slide_{len(requests)}"
-            title_id    = f"title_{len(requests)}"
-            body_id     = f"body_{len(requests)}"
+        requests.append({
+            "createSlide": {
+                "objectId": slide_id,
+                "slideLayoutReference": {"predefinedLayout": "TITLE_AND_BODY"},
+                "placeholderIdMappings": [
+                    {"layoutPlaceholder": {"type": "TITLE"}, "objectId": title_id},
+                    {"layoutPlaceholder": {"type": "BODY"}, "objectId": body_id},
+                ],
+            }
+        })
+        requests.append({"insertText": {"objectId": title_id, "text": heading}})
+        if body_text:
+            requests.append({"insertText": {"objectId": body_id, "text": body_text}})
 
-            # Add slide with TITLE_AND_BODY layout
-            requests.append({
-                "createSlide": {
-                    "objectId": slide_id,
-                    "slideLayoutReference": {"predefinedLayout": "TITLE_AND_BODY"},
-                    "placeholderIdMappings": [
-                        {"layoutPlaceholder": {"type": "TITLE"},       "objectId": title_id},
-                        {"layoutPlaceholder": {"type": "BODY"},        "objectId": body_id},
-                    ],
-                }
-            })
-            # Set heading text
-            requests.append({
-                "insertText": {"objectId": title_id, "text": heading}
-            })
-            # Set body text
-            if body_text:
-                requests.append({
-                    "insertText": {"objectId": body_id, "text": body_text}
-                })
-
+    try:
         if requests:
             prs_svc.presentations().batchUpdate(
                 presentationId=prs_id, body={"requests": requests}
             ).execute()
+    except HttpError as e:
+        return {"error": "Slides API error (edit slides): " + _http_error_detail(e)}
 
-        # Share — anyone with link can view
+    url = "https://docs.google.com/presentation/d/" + prs_id
+
+    try:
         drv_svc.permissions().create(
             fileId=prs_id, body={"type": "anyone", "role": "reader"}
         ).execute()
+    except HttpError as pe:
+        return {
+            "success": True,
+            "url": url,
+            "presentation_id": prs_id,
+            "title": title,
+            "slides_created": len(slides),
+            "sharing_warning": (
+                "Presentation created but link sharing failed. Share manually in Drive if needed. Detail: "
+                + _http_error_detail(pe)
+            ),
+        }
 
-        url = f"https://docs.google.com/presentation/d/{prs_id}"
-        return {"success": True, "url": url, "presentation_id": prs_id,
-                "title": title, "slides_created": len(slides)}
-    except HttpError as e:
-        return {"error": f"Slides API error: {e}"}
-    except Exception as e:
-        return {"error": str(e)}
+    return {"success": True, "url": url, "presentation_id": prs_id,
+            "title": title, "slides_created": len(slides)}
 
 async def slides_create_presentation(title: str, slides: list) -> dict:
     """Create a Google Slides presentation from structured slide data.
@@ -2780,7 +2920,8 @@ ${useGoogleWorkspace ? `3. **Google Workspace Tools**: Act on findings from BigQ
    - Always show what you will send or create BEFORE calling any tool.
    - For \\\`sheets_create_report\\\`, limit rows to the top 50 most significant anomalies.
    - For \\\`slides_create_presentation\\\`, keep decks concise: 5–10 slides maximum unless the user requests more.
-   - If a Workspace tool returns an \\\`error\\\` key, report the error clearly and do not retry silently.` : ''}
+   - If a Workspace tool returns an \\\`error\\\` key, report the error clearly and do not retry silently.
+   - If a tool returns \\\`success\\\` plus \\\`sharing_warning\\\`, the file was created but public link-sharing failed (often Workspace policy). Still give the user the \\\`url\\\` and explain they may need to share manually from Drive.` : ''}
 
 ---------------------------------------------------
 CRITICAL OPERATIONAL RULES:
