@@ -629,6 +629,34 @@
       border-color: rgba(56, 189, 248, 0.4);
     }
 
+    /* Preview disclaimer banner — dark-amber fill is illegible on light page */
+    [data-theme="light"] .awt-preview-banner {
+      background: linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%) !important;
+      border-color: rgba(217, 119, 6, 0.45) !important;
+      box-shadow: 0 10px 28px rgba(180, 83, 9, 0.12) !important;
+      --tw-ring-color: rgba(217, 119, 6, 0.28) !important;
+    }
+
+    [data-theme="light"] .awt-preview-banner .border-amber-500\/25 {
+      border-color: rgba(180, 83, 9, 0.22) !important;
+    }
+
+    [data-theme="light"] .awt-preview-banner p {
+      color: #78350f !important;
+    }
+
+    [data-theme="light"] .awt-preview-banner strong {
+      color: #92400e !important;
+    }
+
+    [data-theme="light"] .awt-preview-banner a {
+      color: #0369a1 !important;
+    }
+
+    [data-theme="light"] .awt-preview-banner a:hover {
+      color: #075985 !important;
+    }
+
     [data-theme="light"] .tab-btn {
       color: #64748b;
     }
@@ -907,7 +935,7 @@
       <div class="max-w-5xl mx-auto">
         <!-- Preview / WIP disclaimer -->
         <div
-          class="mb-8 rounded-2xl border border-amber-500/35 bg-amber-950/40 px-4 py-3.5 sm:px-5 sm:py-4 text-left shadow-lg shadow-black/20 ring-1 ring-amber-500/20"
+          class="awt-preview-banner mb-8 rounded-2xl border border-amber-500/35 bg-amber-950/40 px-4 py-3.5 sm:px-5 sm:py-4 text-left shadow-lg shadow-black/20 ring-1 ring-amber-500/20"
           role="status" aria-live="polite">
           <p class="text-[13px] sm:text-[14px] text-amber-100/90 leading-relaxed">
             <strong class="text-amber-200 font-semibold">Preview — work in progress.</strong>
